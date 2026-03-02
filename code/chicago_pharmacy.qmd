@@ -1,0 +1,33 @@
+---
+title: "Data Viz Final Project: Pharmacies in Chicago"
+format: html
+---
+
+```{python}
+# load packages
+import geopandas as gpd
+import pandas as pd
+from pathlib import Path
+from shapely import wkt
+import pydeck as pdk
+```
+
+```{python}
+# load data
+data_path = 'C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Pharmacy_Status_-_Historical_20260302.csv'
+df_pharm = pd.read_csv(data_path)
+```
+
+```{python}
+# explore data
+df_pharm.shape
+df_pharm.head()
+```
+
+
+```{python}
+# make pharmacy names in all caps
+df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.upper()
+```
+
+
