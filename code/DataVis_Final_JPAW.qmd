@@ -1,0 +1,6 @@
+---
+title: "Data Visualizations Final Project"
+author: "Jessica Prus and Arianna Wooten"
+format: html
+---
+
