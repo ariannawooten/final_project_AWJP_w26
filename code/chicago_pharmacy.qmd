@@ -10,6 +10,7 @@ import pandas as pd
 from pathlib import Path
 from shapely import wkt
 import pydeck as pdk
+import matplotlib.pyplot as plt
 ```
 
 ```{python}
@@ -30,4 +31,108 @@ df_pharm.head()
 df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.upper()
 ```
 
+```{python}
+# load gdf
+census_gdf = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Census_Tracts_20260302.geojson')
+```
+
+```{python}
+# inspect data
+
+# count geometry by type
+print('Geometry type:', census_gdf.geom_type)
+
+# count total number of features
+print('\n N features:', len(census_gdf))
+
+# get crs
+print('\n Coordinate reference system:', census_gdf.crs)
+```
+
+```{python}
+# create basic visualization
+census_gdf.plot().set_axis_off()
+```
+
+```{python}
+# load pharmacies as a geodataframe
+
+# convert float to string
+df_pharm['New Georeferenced Column'] = df_pharm['New Georeferenced Column'].astype(str)
+
+# find problem coordinates
+for index, row in df_pharm.iterrows():
+    value=row['New Georeferenced Column']
+
+    try:
+        if pd.isna(value):
+            raise ValueError('Missing Value')
+
+            wkt.loads(value)
+    except Exception:
+        print(f'{index} [{len(value)}] {value!r}')
+
+
+# drop nas
+df_pharm = df_pharm.dropna(subset= ['New Georeferenced Column'])
+
+# drop na strings
+df_pharm = df_pharm[
+    df_pharm['New Georeferenced Column']
+    .str.lower()
+    .ne('nan')
+]
+
+# create a safe parser to avoid crashing on rows
+def safe_parser(x):
+    try:
+        return wkt.loads()
+    except Exception:
+        return None
+
+# apply safe parser
+df_pharm['geometry'] = (
+    df_pharm['New Georeferenced Column']
+    .apply(safe_parser)
+)
+
+# drop failed geometries
+df_pharm = df_pharm.dropna(subset=['geometry'])
+
+# load df_pharm as gdf
+pharm_gdf = gpd.GeoDataFrame(df_pharm, geometry='geometry', crs='EPSG:4326')
+```
+
+
+```{python}
+# join gdfs
+combined_gdf = gpd.sjoin(census_gdf, pharm_gdf, 
+    how='inner',
+    predicate='intersects')
+
+# check object type
+print('Object type:', type(combined_gdf))
+
+# check geometry type
+print()
+
+```
+
+```{python}
+assert (census_gdf.crs == pharm_gdf.crs)
+```
+
+```{python}
+# set up plot
+fig, ax = plt.subplots(figsize=(8,6))
+
+# plot chicago in blue
+combined_gdf.plot(ax=ax, color='blue', alpha=0.5)
+
+# plot pharmacies in orange
+pharm_gdf.plt.scatter(ax=ax, color='orange', markersize=1.5)
+
+ax.set_axis_off()
+plt.show()
+```
 
