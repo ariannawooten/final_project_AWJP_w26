@@ -2,14 +2,30 @@ import geopandas as gpd
 import pandas as pd
 from pathlib import Path
 from shapely import wkt
+import pydeck as pdk
 
-script_dir = Path(__file__).parent
 
-# Process fire data
-raw_fire = script_dir / '../data/raw-data/fire.csv'
-output_fire = script_dir / '../data/derived-data/fire_filtered.gpkg'
+# load data
+data_path = 'C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Pharmacy_Status_-_Historical_20260302.csv'
+df_pharm = pd.read_csv(data_path)
 
-df = pd.read_csv(raw_fire)
+
+# explore data
+df_pharm.shape
+df_pharm.head()
+
+# make pharmacy names in all caps
+df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.upper()
+
+
+# load gdf
+census = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Census_Tracts_20260302.geojson')
+
+
+
+
+
+
 df['geometry'] = df['geometry'].apply(wkt.loads)
 fire_gdf = gpd.GeoDataFrame(df, geometry='geometry')
 
