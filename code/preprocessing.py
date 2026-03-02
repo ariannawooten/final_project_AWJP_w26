@@ -4,7 +4,7 @@ from pathlib import Path
 from shapely import wkt
 import pydeck as pdk
 
-
+### PHARMACY DATA
 # load data
 data_path = 'C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Pharmacy_Status_-_Historical_20260302.csv'
 df_pharm = pd.read_csv(data_path)
@@ -46,3 +46,13 @@ cpi_filtered = cpi_df[['Product'] + date_cols].dropna(subset=['Product'])
 
 cpi_filtered.to_csv(output_cpi, index=False)
 print(f"CPI data filtered: {len(cpi_filtered)} products, {len(date_cols)} months")
+
+
+### CHICAGO HEALTH ATLAS DATA
+
+#load data
+cha_datapath = '/Users/ariannawooten/Downloads/final_project_AWJP_w26/data/raw-data/Chicago Health Atlas Data Download - Census Tracts.csv' #chicago health atlas data (2020)'
+cha = pd.read_csv(cha_datapath) #chicago health atlas data (2020)
+
+# remove first 3 rows, which have data definitions, citations, etc.
+cha = cha.iloc[4:809]
