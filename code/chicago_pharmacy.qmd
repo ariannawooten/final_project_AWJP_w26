@@ -11,6 +11,7 @@ from pathlib import Path
 from shapely import wkt
 import pydeck as pdk
 import matplotlib.pyplot as plt
+import altair as alt
 ```
 
 ```{python}
@@ -48,7 +49,6 @@ df_pharm['Status'] = df_pharm['Status'].replace(mapping)
 # make pharmacy names in all caps
 df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.upper()
 ```
-
 
 
 ```{python}
@@ -111,9 +111,9 @@ print(df_pharm.head())
 
 ```{python}
 # join gdfs
-combined_gdf = gpd.sjoin(census_gdf, pharm_gdf, 
+combined_gdf = gpd.sjoin(pharm_gdf, census_gdf, 
     how='left',
-    predicate='intersects')
+    predicate='within')
 
 # check object type
 print('Object type:', type(combined_gdf))
@@ -121,6 +121,23 @@ print('Object type:', type(combined_gdf))
 # check geometry type
 print('\nGeometry type:', combined_gdf.geom_type.value_counts())
 ```
+
+```{python}
+# other sjoin option
+
+
+# join gdfs
+#combined_gdf = gpd.sjoin(census_gdf, pharm_gdf, 
+#    how='left',
+#    predicate='intersects')
+
+# check object type
+#print('Object type:', type(combined_gdf))
+
+# check geometry type
+#print('\nGeometry type:', combined_gdf.geom_type.value_counts())
+```
+
 
 ```{python}
 combined_gdf.head()
@@ -152,4 +169,89 @@ plt.tight_layout()
 ax.set_axis_off()
 plt.show()
 ```
+
+
+```{python}
+# group data by census tract
+pharm_by_tract = (
+    combined_gdf
+    .groupby('census_t_1')
+    .size()
+    .reset_index(name='pharmacy_count')
+)
+
+# count pharmacies per census tract
+pharm_by_tract.shape
+```
+
+
+```{python}
+# count pharmacies per tract
+pharm_counts = (
+    combined_gdf
+    .groupby('tract_ce_3')
+    .size()
+    .reset_index(name='pharmacy_count')
+)
+```
+
+```{python}
+# merge counts back to census polygons
+census_gdf = census_gdf.merge(
+    pharm_counts,
+    on='tract_ce_3',
+    how='left'
+)
+
+# fill missing tracts with zero pharmacies
+census_gdf['pharmacy_count'] = (
+    census_gdf['pharmacy_count']
+    .fillna(0)
+)
+```
+
+```{python}
+# project to crs in meters
+census_gdf = census_gdf.to_crs(epsg=26916)
+
+# calculate area in square miles
+census_gdf['area_sq_miles'] = (
+    census_gdf.geometry.area / 2_589_988
+)
+
+# compute density
+census_gdf['pharm_density'] = (
+    census_gdf['pharmacy_count'] /
+    census_gdf['area_sq_miles']
+)
+```
+ 
+
+```{python}
+# make choropleth map
+fig, ax = plt.subplots(figsize=(10,10))
+
+census_gdf.plot(
+    column='pharm_density',
+    cmap='OrRd',
+    scheme='quantiles',
+    k=5,
+    legend=True,
+ #   legend_kwds={'label': 'Pharmacies Per Square Mile'},
+    linewidth=0.1,
+    edgecolor='grey',
+    ax=ax
+)
+
+ax.set_title('Pharmacy Density per Square Mile\nChicago Census Tracts')
+ax.axis('off')
+
+plt.show()
+```
+
+```{python}
+census_gdf.columns
+```
+
+
 
