@@ -9,7 +9,7 @@ import geopandas as gpd
 import pandas as pd
 from pathlib import Path
 from shapely import wkt
-import pydeck as pdk
+#import pydeck as pdk
 import matplotlib.pyplot as plt
 import altair as alt
 ```
@@ -117,7 +117,7 @@ print(df_pharm.head())
 
 
 ```{python}
-# join gdfs
+# join pharmacy location and census tract gdfs (pharmacy emphasis)
 combined1_gdf = gpd.sjoin(pharm_gdf, census_2010_gdf, 
     how='left',
     predicate='within')
@@ -160,7 +160,7 @@ plt.show()
 ```{python}
 # other sjoin option
 
-# join gdfs
+# join gdfs (alternative merge with more census data and less pharm data)
 combined2_gdf = gpd.sjoin(census_2010_gdf, pharm_gdf, 
     how='left',
     predicate='intersects')
