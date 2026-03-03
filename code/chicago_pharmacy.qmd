@@ -14,6 +14,36 @@ import matplotlib.pyplot as plt
 import altair as alt
 ```
 
+
+```{python}
+# load 2010 census data
+census_2010_gdf = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\CensusTractsTIGER2010_20260303.geojson')
+```
+
+```{python}
+# explore 2010 census data
+census_2010_gdf.shape
+
+# count geometry by type
+print('Geometry type:', census_2010_gdf.geom_type)
+
+# count total number of features
+print('\n N features:', len(census_2010_gdf))
+
+# get crs
+print('\n Coordinate reference system:', census_2010_gdf.crs)
+
+print(census_2010_gdf.head())
+print(census_2010_gdf.columns)
+```
+
+```{python}
+# create basic visualization
+census_2010_gdf.plot().set_axis_off()
+```
+
+
+
 ```{python}
 # load data
 data_path = 'C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Pharmacy_Status_-_Historical_20260302.csv'
@@ -52,29 +82,6 @@ df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.upper()
 
 
 ```{python}
-# load gdf
-census_gdf = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Census_Tracts_20260302.geojson')
-```
-
-```{python}
-# inspect data
-
-# count geometry by type
-print('Geometry type:', census_gdf.geom_type)
-
-# count total number of features
-print('\n N features:', len(census_gdf))
-
-# get crs
-print('\n Coordinate reference system:', census_gdf.crs)
-```
-
-```{python}
-# create basic visualization
-census_gdf.plot().set_axis_off()
-```
-
-```{python}
 # load pharmacies as a geodataframe
 
 # drop nas
@@ -109,9 +116,10 @@ print(df_pharm.head())
 ```
 
 
+
 ```{python}
 # join gdfs
-combined1_gdf = gpd.sjoin(pharm_gdf, census_gdf, 
+combined1_gdf = gpd.sjoin(pharm_gdf, census_2010_gdf, 
     how='left',
     predicate='within')
 
@@ -122,34 +130,8 @@ print('Object type:', type(combined1_gdf))
 print('\nGeometry type:', combined1_gdf.geom_type.value_counts())
 ```
 
-
 ```{python}
-combined1_gdf.head()
-```
-
-
-```{python}
-# other sjoin option
-
-# join gdfs
-combined2_gdf = gpd.sjoin(census_gdf, pharm_gdf, 
-    how='left',
-    predicate='intersects')
-
-# check object type
-print('Object type:', type(combined_gdf))
-
-# check geometry type
-print('\nGeometry type:', combined_gdf.geom_type.value_counts())
-```
-
-
-```{python}
-combined2_gdf.head()
-```
-
-```{python}
-assert (census_gdf.crs == pharm_gdf.crs)
+assert (census_2010_gdf.crs == pharm_gdf.crs)
 ```
 
 ```{python}
@@ -157,7 +139,7 @@ assert (census_gdf.crs == pharm_gdf.crs)
 fig, ax = plt.subplots(figsize=(8,6))
 
 # plot chicago in blue
-census_gdf.plot(ax=ax, color='lightblue', alpha=0.5)
+census_2010_gdf.plot(ax=ax, color='lightblue', alpha=0.5)
 
 # plot pharmacies
 pharm_gdf.plot(
@@ -177,10 +159,37 @@ plt.show()
 
 
 ```{python}
+# other sjoin option
+
+# join gdfs
+combined2_gdf = gpd.sjoin(census_2010_gdf, pharm_gdf, 
+    how='left',
+    predicate='intersects')
+
+# check object type
+print('Object type:', type(combined2_gdf))
+
+# check geometry type
+print('\nGeometry type:', combined2_gdf.geom_type.value_counts())
+```
+
+
+```{python}
+combined2_gdf.head()
+```
+
+
+```{python}
+print(census_2010_gdf.head())
+print(census_2010_gdf.columns)
+print(census_2010_gdf.head())
+```
+
+```{python}
 # group data by census tract
 pharm_by_tract = (
     combined1_gdf
-    .groupby('census_t_1')
+    .groupby('geoid10')
     .size()
     .reset_index(name='pharmacy_count')
 )
@@ -189,12 +198,15 @@ pharm_by_tract = (
 pharm_by_tract.shape
 ```
 
+```{python}
+combined1_gdf.columns
+```
 
 ```{python}
 # count pharmacies per tract
 pharm_counts = (
     combined1_gdf
-    .groupby('tract_ce_3')
+    .groupby('tractce10')
     .size()
     .reset_index(name='pharmacy_count')
 )
@@ -202,32 +214,32 @@ pharm_counts = (
 
 ```{python}
 # merge counts back to census polygons
-census_gdf = census_gdf.merge(
+census_2010_gdf = census_2010_gdf.merge(
     pharm_counts,
-    on='tract_ce_3',
+    on='tractce10',
     how='left'
 )
 
 # fill missing tracts with zero pharmacies
-census_gdf['pharmacy_count'] = (
-    census_gdf['pharmacy_count']
+census_2010_gdf['pharmacy_count'] = (
+    census_2010_gdf['pharmacy_count']
     .fillna(0)
 )
 ```
 
 ```{python}
 # project to crs in meters
-census_gdf = census_gdf.to_crs(epsg=26916)
+census_2010_gdf = census_2010_gdf.to_crs(epsg=26916)
 
 # calculate area in square miles
-census_gdf['area_sq_miles'] = (
-    census_gdf.geometry.area / 2_589_988
+census_2010_gdf['area_sq_miles'] = (
+    census_2010_gdf.geometry.area / 2_589_988
 )
 
 # compute density
-census_gdf['pharm_density'] = (
-    census_gdf['pharmacy_count'] /
-    census_gdf['area_sq_miles']
+census_2010_gdf['pharm_density'] = (
+    census_2010_gdf['pharmacy_count'] /
+    census_2010_gdf['area_sq_miles']
 )
 ```
  
@@ -236,7 +248,7 @@ census_gdf['pharm_density'] = (
 # make choropleth map
 fig, ax = plt.subplots(figsize=(10,10))
 
-census_gdf.plot(
+census_2010_gdf.plot(
     column='pharm_density',
     cmap='OrRd',
     scheme='quantiles',
@@ -248,11 +260,25 @@ census_gdf.plot(
     ax=ax
 )
 
-ax.set_title('Pharmacy Density per Square Mile\nChicago Census Tracts')
+ax.set_title('Pharmacy Density per Square Mile\nChicago 2010 Census Tracts')
 ax.axis('off')
 
 plt.show()
 ```
+
+
+```{python}
+census_2010_gdf.columns
+```
+
+```{python}
+combined2_gdf.head()
+```
+
+
+
+
+
 
 ```{python}
 # load population csv
@@ -291,6 +317,111 @@ df_health.shape
 print(df_health.head)
 print(df_health.columns)
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{python}
+# load gdf
+census_2000_gdf = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Census_Tracts_20260302.geojson')
+```
+
+```{python}
+# inspect data
+
+# count geometry by type
+print('Geometry type:', census_2000_gdf.geom_type)
+
+# count total number of features
+print('\n N features:', len(census_2000_gdf))
+
+# get crs
+print('\n Coordinate reference system:', census_2000_gdf.crs)
+
+print(census_2000_gdf.head())
+print(census_2000_gdf.columns)
+```
+
+```{python}
+# create basic visualization
+census_gdf.plot().set_axis_off()
+```
+
+```{python}
+# join gdfs
+combined3_gdf = gpd.sjoin(pharm_gdf, census_2000_gdf, 
+    how='left',
+    predicate='within')
+
+# check object type
+print('Object type:', type(combined3_gdf))
+
+# check geometry type
+print('\nGeometry type:', combined3_gdf.geom_type.value_counts())
+```
+
+```{python}
+# group data by census tract
+pharm_by_tract2 = (
+    combined3_gdf
+    .groupby('census_t_1')
+    .size()
+    .reset_index(name='pharmacy_count')
+)
+
+# count pharmacies per census tract
+pharm_by_tract2.shape
+```
+
+```{python}
+pharm_by_tract2.columns
+```
+
+```{python}
+# count pharmacies per tract
+pharm_counts2 = (
+    combined3_gdf
+    .groupby('tract_ce_3')
+    .size()
+    .reset_index(name='pharmacy_count')
+)
+```
+
+```{python}
+combined3_gdf.head()
+```
+
+```{python}
+combined1_gdf.head()
+```
+
+```{python}
+combined1_gdf.columns
+```
+
+
+```{python}
+census_2000_gdf.columns
+```
+
+```{python}
+census_2010_gdf.columns
+```
+
+
+
+
+
 
 
 
