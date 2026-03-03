@@ -111,9 +111,30 @@ print(df_pharm.head())
 
 ```{python}
 # join gdfs
-combined_gdf = gpd.sjoin(pharm_gdf, census_gdf, 
+combined1_gdf = gpd.sjoin(pharm_gdf, census_gdf, 
     how='left',
     predicate='within')
+
+# check object type
+print('Object type:', type(combined1_gdf))
+
+# check geometry type
+print('\nGeometry type:', combined1_gdf.geom_type.value_counts())
+```
+
+
+```{python}
+combined1_gdf.head()
+```
+
+
+```{python}
+# other sjoin option
+
+# join gdfs
+combined2_gdf = gpd.sjoin(census_gdf, pharm_gdf, 
+    how='left',
+    predicate='intersects')
 
 # check object type
 print('Object type:', type(combined_gdf))
@@ -122,25 +143,9 @@ print('Object type:', type(combined_gdf))
 print('\nGeometry type:', combined_gdf.geom_type.value_counts())
 ```
 
-```{python}
-# other sjoin option
-
-
-# join gdfs
-#combined_gdf = gpd.sjoin(census_gdf, pharm_gdf, 
-#    how='left',
-#    predicate='intersects')
-
-# check object type
-#print('Object type:', type(combined_gdf))
-
-# check geometry type
-#print('\nGeometry type:', combined_gdf.geom_type.value_counts())
-```
-
 
 ```{python}
-combined_gdf.head()
+combined2_gdf.head()
 ```
 
 ```{python}
@@ -174,7 +179,7 @@ plt.show()
 ```{python}
 # group data by census tract
 pharm_by_tract = (
-    combined_gdf
+    combined1_gdf
     .groupby('census_t_1')
     .size()
     .reset_index(name='pharmacy_count')
@@ -188,7 +193,7 @@ pharm_by_tract.shape
 ```{python}
 # count pharmacies per tract
 pharm_counts = (
-    combined_gdf
+    combined1_gdf
     .groupby('tract_ce_3')
     .size()
     .reset_index(name='pharmacy_count')
@@ -250,8 +255,46 @@ plt.show()
 ```
 
 ```{python}
-census_gdf.columns
+# load population csv
+df_pop = pd.read_csv('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Population_by_2010_Census_Block_20260302.csv')
+
+df_pop.head()
 ```
+
+```{python}
+# rename census block column in pop df
+df_pop = df_pop.rename(columns={'CENSUS BLOCK FULL': ''})
+```
+
+```{python}
+# merge population data to census gdf
+census_gdf = census_gdf.merge(
+    df_pop,
+    on=''
+)
+```
+
+```{python}
+combined1_gdf.columns
+```
+
+
+
+```{python}
+# load health data
+df_health = pd.read_csv('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Chicago Health Atlas Data Download - Census Tracts.csv')
+```
+
+```{python}
+# explore health data
+df_health.shape
+print(df_health.head)
+print(df_health.columns)
+```
+
+
+
+
 
 
 
