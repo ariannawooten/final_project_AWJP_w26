@@ -25,6 +25,11 @@ df_pharm.shape
 df_pharm.head()
 ```
 
+```{python}
+# check pharmacy status
+
+df_pharm['Status'].unique()
+```
 
 ```{python}
 # make pharmacy names in all caps
@@ -57,24 +62,8 @@ census_gdf.plot().set_axis_off()
 ```{python}
 # load pharmacies as a geodataframe
 
-# convert float to string
-df_pharm['New Georeferenced Column'] = df_pharm['New Georeferenced Column'].astype(str)
-
-# find problem coordinates
-for index, row in df_pharm.iterrows():
-    value=row['New Georeferenced Column']
-
-    try:
-        if pd.isna(value):
-            raise ValueError('Missing Value')
-
-            wkt.loads(value)
-    except Exception:
-        print(f'{index} [{len(value)}] {value!r}')
-
-
 # drop nas
-df_pharm = df_pharm.dropna(subset= ['New Georeferenced Column'])
+df_pharm = df_pharm.dropna(subset=['New Georeferenced Column'])
 
 # drop na strings
 df_pharm = df_pharm[
@@ -83,39 +72,43 @@ df_pharm = df_pharm[
     .ne('nan')
 ]
 
-# create a safe parser to avoid crashing on rows
-def safe_parser(x):
-    try:
-        return wkt.loads()
-    except Exception:
-        return None
-
-# apply safe parser
-df_pharm['geometry'] = (
-    df_pharm['New Georeferenced Column']
-    .apply(safe_parser)
+# convert wkt to a geometry
+df_pharm['geometry'] = gpd.GeoSeries.from_wkt(
+    df_pharm['New Georeferenced Column'],
+    on_invalid='ignore'
 )
 
-# drop failed geometries
+# drop failed parses
 df_pharm = df_pharm.dropna(subset=['geometry'])
 
-# load df_pharm as gdf
-pharm_gdf = gpd.GeoDataFrame(df_pharm, geometry='geometry', crs='EPSG:4326')
+# create geodataframe
+pharm_gdf = gpd.GeoDataFrame(
+    df_pharm,
+    geometry='geometry',
+    crs='EPSG:4326'
+)
+
+# sanity check
+print(df_pharm.shape)
+print(df_pharm.head())
 ```
 
 
 ```{python}
 # join gdfs
 combined_gdf = gpd.sjoin(census_gdf, pharm_gdf, 
-    how='inner',
+    how='left',
     predicate='intersects')
 
 # check object type
 print('Object type:', type(combined_gdf))
 
 # check geometry type
-print()
+print('\nGeometry type:', combined_gdf.geom_type.value_counts())
+```
 
+```{python}
+combined_gdf.head()
 ```
 
 ```{python}
@@ -127,10 +120,12 @@ assert (census_gdf.crs == pharm_gdf.crs)
 fig, ax = plt.subplots(figsize=(8,6))
 
 # plot chicago in blue
-combined_gdf.plot(ax=ax, color='blue', alpha=0.5)
+census_gdf.plot(ax=ax, color='blue', alpha=0.5)
 
 # plot pharmacies in orange
-pharm_gdf.plt.scatter(ax=ax, color='orange', markersize=1.5)
+pharm_gdf.plot(ax=ax, color='orange', marker='o', markersize=5, zorder=5)
+
+#combined_gdf.plot(ax=ax, color='red')
 
 ax.set_axis_off()
 plt.show()
