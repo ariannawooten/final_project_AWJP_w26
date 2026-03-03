@@ -31,14 +31,14 @@ df_pharm['Status'] = df_pharm['Status'].replace(mapping)
 ### CHICAGO 2000 CENSUS DATA
 
 # load census tract gdf
-census_gpd = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Census_Tracts_20260302.geojson')
+census_2000_gpd = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Census_Tracts_20260302.geojson')
 
 
 #################
 ### CHICAGO 2010 CENSUS DATA
 
 # load census tract gdf
-census_gpd = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Census_Tracts_20260302.geojson')
+census_2010_gpd = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\CensusTractsTIGER2010_20260303.geojson')
 
 
 
@@ -59,7 +59,8 @@ cha = pd.read_csv(cha_datapath) #chicago health atlas data (2020)
 cha = cha.iloc[4:809]
 
 #################
-### COMBINING PHARMACIES AND CENSUS BLOCKS
+### COMBINING PHARMACIES AND CENSUS BLOCKS 
+### INTO census_and_pharm.gdf
 
 # load pharmacies as a geodataframe
 
@@ -89,20 +90,45 @@ pharm_gdf = gpd.GeoDataFrame(
     crs='EPSG:4326'
 )
 
-# sanity check
-print(df_pharm.shape)
-print(df_pharm.head())
-
 # join gdfs
 combined1_gdf = gpd.sjoin(pharm_gdf, census_2010_gdf, 
     how='left',
     predicate='within')
 
-# check object type
-print('Object type:', type(combined1_gdf))
+# group data by census tract
+pharm_by_tract = (
+    combined1_gdf
+    .groupby('geoid10')
+    .size()
+    .reset_index(name='pharmacy_count')
+)
 
-# check geometry type
-print('\nGeometry type:', combined1_gdf.geom_type.value_counts())
+# merge counts back to census polygons
+census_and_pharm_gdf = census_2010_gdf.merge(
+    pharm_counts,
+    on='tractce10',
+    how='left'
+)
+
+# fill missing tracts with zero pharmacies
+census_and_pharm_gdf['pharmacy_count'] = (
+    census_and_pharm_gdf['pharmacy_count']
+    .fillna(0)
+)
+
+# project to crs in meters
+census_and_pharm_gdf = census_and_pharm_gdf.to_crs(epsg=26916)
+
+# calculate area in square miles
+census_and_pharm_gdf['area_sq_miles'] = (
+    census_and_pharm_gdf.geometry.area / 2_589_988
+)
+
+# compute density
+census_and_pharm_gdf['pharm_density'] = (
+    census_and_pharm_gdf['pharmacy_count'] /
+    census_and_pharm_gdf['area_sq_miles']
+)
 
 
 

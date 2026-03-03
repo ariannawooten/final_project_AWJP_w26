@@ -305,9 +305,6 @@ print(df_health.columns)
 
 
 
-
-
-
 ```{python}
 # load gdf
 census_2000_gdf = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Census_Tracts_20260302.geojson')
