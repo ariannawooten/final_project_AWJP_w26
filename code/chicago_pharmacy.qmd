@@ -180,12 +180,6 @@ combined2_gdf.head()
 
 
 ```{python}
-print(census_2010_gdf.head())
-print(census_2010_gdf.columns)
-print(census_2010_gdf.head())
-```
-
-```{python}
 # group data by census tract
 pharm_by_tract = (
     combined1_gdf
@@ -196,10 +190,6 @@ pharm_by_tract = (
 
 # count pharmacies per census tract
 pharm_by_tract.shape
-```
-
-```{python}
-combined1_gdf.columns
 ```
 
 ```{python}
@@ -214,32 +204,32 @@ pharm_counts = (
 
 ```{python}
 # merge counts back to census polygons
-census_2010_gdf = census_2010_gdf.merge(
+census_and_pharm_gdf = census_2010_gdf.merge(
     pharm_counts,
     on='tractce10',
     how='left'
 )
 
 # fill missing tracts with zero pharmacies
-census_2010_gdf['pharmacy_count'] = (
-    census_2010_gdf['pharmacy_count']
+census_and_pharm_gdf['pharmacy_count'] = (
+    census_and_pharm_gdf['pharmacy_count']
     .fillna(0)
 )
 ```
 
 ```{python}
 # project to crs in meters
-census_2010_gdf = census_2010_gdf.to_crs(epsg=26916)
+census_and_pharm_gdf = census_and_pharm_gdf.to_crs(epsg=26916)
 
 # calculate area in square miles
-census_2010_gdf['area_sq_miles'] = (
-    census_2010_gdf.geometry.area / 2_589_988
+census_and_pharm_gdf['area_sq_miles'] = (
+    census_and_pharm_gdf.geometry.area / 2_589_988
 )
 
 # compute density
-census_2010_gdf['pharm_density'] = (
-    census_2010_gdf['pharmacy_count'] /
-    census_2010_gdf['area_sq_miles']
+census_and_pharm_gdf['pharm_density'] = (
+    census_and_pharm_gdf['pharmacy_count'] /
+    census_and_pharm_gdf['area_sq_miles']
 )
 ```
  
@@ -248,7 +238,7 @@ census_2010_gdf['pharm_density'] = (
 # make choropleth map
 fig, ax = plt.subplots(figsize=(10,10))
 
-census_2010_gdf.plot(
+census_and_pharm_gdf.plot(
     column='pharm_density',
     cmap='OrRd',
     scheme='quantiles',
@@ -265,19 +255,6 @@ ax.axis('off')
 
 plt.show()
 ```
-
-
-```{python}
-census_2010_gdf.columns
-```
-
-```{python}
-combined2_gdf.head()
-```
-
-
-
-
 
 
 ```{python}
