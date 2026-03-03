@@ -14,6 +14,9 @@ cha = pd.read_csv('/Users/ariannawooten/Downloads/final_project_AWJP_w26/data/ra
 # remove first 3 rows, which have data definitions, citations, etc.
 cha = cha.iloc[4:809]
 
+# make the tract names numeric (https://www.statology.org/pandas-remove-characters-from-string/)
+cha['Name'] = cha['Name'].str.replace('Tract ', '')
+
 # create data subsets with different categories of census tracts
 # first convert income column to numeric data type
 cha['INC_2020-2024'] = pd.to_numeric(cha['INC_2020-2024'], downcast=None)
@@ -62,10 +65,6 @@ senior = cha[cha['SLA-S_2020-2024'] > cha['SLA-S_2020-2024'].median()]
 
 #transpo
 
-# ── File mappings ──────────────────────────────────────────────
-DASHBOARD_DIR = "data/dashboard"
-EXTERNAL_DIR = "data/external/dashboard"
-
 #demo_options = ['All', 'Low Median Household Income','Hardship Index', 'Percentage of Seniors Living Alone']
 sample_options = {'cha': 'All', 'low_inc': 'Low Median Household Income', 'hdx': 'High Hardship Index', 'senior': 'High Percentage of Seniors Living Alone'}
 
@@ -94,9 +93,9 @@ def create_plot(df=cha):
         df = senior
     
     transpo = alt.Chart(df).mark_bar(color='navy').encode(
-    alt.X('Name:O', title='Census Tract', sort = alt.EncodingSortField(field='RITB_2022', order = 'descending')),
-        alt.Y('RITB_2022:Q', title='Transportation Burden (Percentile)')
-        )
+        alt.X('Name:O', title='Census Tract', sort = alt.EncodingSortField(field='average(RITB_2022):Q', order = 'descending')).bin(),
+        alt.Y('average(RITB_2022):Q', title='Transportation Burden (Percentile)')
+    )
 
     # add a line showing the 50th percentile
     # source: https://stackoverflow.com/questions/77802979/how-to-draw-a-horizontal-line-at-y-0-in-an-altair-line-chart
