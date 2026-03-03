@@ -43,7 +43,6 @@ census_2010_gdf.plot().set_axis_off()
 ```
 
 
-
 ```{python}
 # load data
 data_path = 'C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Pharmacy_Status_-_Historical_20260302.csv'
@@ -263,6 +262,37 @@ df_pop = pd.read_csv('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\
 
 df_pop.head()
 ```
+
+
+
+
+```{python}
+# create a function to convert
+def blocks_to_tracts(df_pop, geoid_col='CENSUS BLOCK FULL'): 
+
+    # ensure geoid is string
+    df_pop[geoid_col] = df_pop[geoid_col].astype(str).str.zfill(15)
+
+    # extract tract geoid
+    df_pop['geoid10'] = df_pop[geoid_col].str[:11]
+
+    # keep only numeric columns for aggregation
+    numeric_cols = df_pop.select_dtypes(include='number').columns
+
+    # group by tract and sum numeric values
+    pop_tract_df = (
+        df_pop
+        .groupby('geoid10')[numeric_cols]
+        .sum()
+        .reset_index()
+    )
+
+    return pop_tract_df
+
+
+```
+
+
 
 ```{python}
 # rename census block column in pop df
