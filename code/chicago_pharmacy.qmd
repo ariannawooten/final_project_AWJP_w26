@@ -27,14 +27,29 @@ df_pharm.head()
 
 ```{python}
 # check pharmacy status
-
 df_pharm['Status'].unique()
+
+# create mapping for pharmacy status
+mapping = {
+    'OPEN':'Open',
+    'CLOSED': 'Closed',
+    'Permanently closed': 'Closed',
+    'closed': 'Closed',
+    'open': 'Open',
+    'permanently closed': 'Closed',
+    'unknown': 'Unknown'
+}
+
+# recode the status column
+df_pharm['Status'] = df_pharm['Status'].replace(mapping)
 ```
 
 ```{python}
 # make pharmacy names in all caps
 df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.upper()
 ```
+
+
 
 ```{python}
 # load gdf
@@ -120,12 +135,19 @@ assert (census_gdf.crs == pharm_gdf.crs)
 fig, ax = plt.subplots(figsize=(8,6))
 
 # plot chicago in blue
-census_gdf.plot(ax=ax, color='blue', alpha=0.5)
+census_gdf.plot(ax=ax, color='lightblue', alpha=0.5)
 
-# plot pharmacies in orange
-pharm_gdf.plot(ax=ax, color='orange', marker='o', markersize=5, zorder=5)
-
-#combined_gdf.plot(ax=ax, color='red')
+# plot pharmacies
+pharm_gdf.plot(
+    ax=ax,
+    column='Status',
+    categorical=True,
+    legend=True,
+    markersize=5,
+    alpha=0.7
+)
+plt.title('Chicago Pharmacy Distribution')
+plt.tight_layout()
 
 ax.set_axis_off()
 plt.show()
