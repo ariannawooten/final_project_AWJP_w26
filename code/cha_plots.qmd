@@ -15,7 +15,7 @@ import altair as alt
 import streamlit as st
 ```
 
-LOADING AND PREPARING 2010 CENSUS GEODATA
+## LOADING AND PREPARING 2010 CENSUS GEODATA
 
 ```{python}
 # load 2010 census data
@@ -48,7 +48,7 @@ print(census_2010_gdf.columns)
 census_2010_gdf.plot().set_axis_off()
 ```
 
-LOADING AND PREPARING CHICAGO PHARMACY DATA
+## LOADING AND PREPARING CHICAGO PHARMACY DATA
 ```{python}
 # load data
 #JESSICA'S DATA PATH
@@ -123,6 +123,29 @@ pharm_gdf = gpd.GeoDataFrame(
 # sanity check
 print(df_pharm.shape)
 print(df_pharm.head())
+```
+
+MERGE CHICAGO HEALTH ATLAS (CHA) AND PHARMACY DATA
+
+```{python}
+# Load CHA data
+cha = pd.read_csv('/Users/ariannawooten/Downloads/final_project_AWJP_w26/data/raw-data/Chicago Health Atlas Data Download - Census Tracts.csv')
+cha = cha.iloc[4:809] # remove non-data rows
+
+# create coordinates column
+cha['coordinates'] = f'{cha['Longitude']}, {cha['Latitude']}'
+cha['coordinates'].head()
+
+# source: https://geopandas.org/en/stable/gallery/create_geopandas_from_pandas.html
+cha = gpd.GeoDataFrame(
+    cha, geometry=gpd.points_from_xy(cha.Longitude, cha.Latitude), crs="EPSG:4326"
+)
+
+# use gpd.merge to merge cha csv to pharmacy gdf
+
+
+
+
 ```
 
 MERGING PHARMACY, HEALTH, AND CENSUS TRACT DATA
