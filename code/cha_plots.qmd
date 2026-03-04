@@ -13,10 +13,9 @@ from shapely import wkt
 import matplotlib.pyplot as plt
 import altair as alt
 import streamlit as st
-from matplotlib.patches import Patch
 ```
 
-LOADING AND PREPARING 2010 CENSUS GEODATA
+## LOADING AND PREPARING 2010 CENSUS GEODATA
 
 ```{python}
 # load 2010 census data
@@ -28,9 +27,6 @@ census_2010_gdf = gpd.read_file('/Users/ariannawooten/Downloads/final_project_AW
 ```
 
 ```{python}
-# explore 2010 census data
-census_2010_gdf.shape
-
 # count geometry by type
 print('Geometry type:', census_2010_gdf.geom_type)
 
@@ -40,8 +36,8 @@ print('\n N features:', len(census_2010_gdf))
 # get crs
 print('\n Coordinate reference system:', census_2010_gdf.crs)
 
-print(census_2010_gdf.head())
-print(census_2010_gdf.columns)
+census_2010_gdf.columns
+
 ```
 
 ```{python}
@@ -49,7 +45,7 @@ print(census_2010_gdf.columns)
 census_2010_gdf.plot().set_axis_off()
 ```
 
-LOADING AND PREPARING CHICAGO PHARMACY DATA
+## LOADING AND PREPARING CHICAGO PHARMACY DATA
 ```{python}
 # load data
 #JESSICA'S DATA PATH
@@ -87,8 +83,8 @@ df_pharm['Status'] = df_pharm['Status'].replace(mapping)
 ```
 
 ```{python}
-# make pharmacy names capitalized
-df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.capitalize()
+# make pharmacy names in all caps
+df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.upper()
 ```
 
 
@@ -124,9 +120,10 @@ pharm_gdf = gpd.GeoDataFrame(
 # sanity check
 print(df_pharm.shape)
 print(df_pharm.head())
+
 ```
 
-MERGING PHARMACY, HEALTH, AND CENSUS TRACT DATA
+## MERGING PHARMACY, HEALTH, AND CENSUS TRACT DATA
 
 ```{python}
 # join pharmacy location and census tract gdfs (pharmacy emphasis)
@@ -139,63 +136,13 @@ print('Object type:', type(combined1_gdf))
 
 # check geometry type
 print('\nGeometry type:', combined1_gdf.geom_type.value_counts())
+
+combined1_gdf['geometry']
 ```
 
 ```{python}
 assert (census_2010_gdf.crs == pharm_gdf.crs)
 ```
-
-CREATE PLOTS
-```{python}
-# map colors to pharmacy status
-
-# create color dictionary
-color_dict = {
-    'Open': 'green',
-    'Closed': 'red',
-    'Unknown': 'purple'
-}
-
-# map colors to gdf
-pharm_gdf['color'] = pharm_gdf['Status'].map(color_dict)
-```
-
-```{python}
-# set up plot (Chicago Pharmacy Distribution on census map)
-fig, ax = plt.subplots(figsize=(8,6))
-
-# plot chicago in blue
-census_2010_gdf.plot(ax=ax, color='lightblue', alpha=0.5)
-
-# plot pharmacies
-pharm_gdf.plot(
-    ax=ax,
-    color=pharm_gdf['color'],
-    markersize=5,
-    alpha=0.7
-)
-
-# create legend handles
-legend_handles = [
-    Patch(facecolor=color, edgecolor='black', label=status)
-    for status, color in color_dict.items()
-] 
-
-# add legend
-ax.legend(
-    handles=legend_handles,
-    title='Pharmacy Status',
-    loc='lower left',
-    frameon=True
-)
-
-plt.title('Chicago Pharmacy Distribution')
-plt.tight_layout()
-
-ax.set_axis_off()
-plt.show()
-```
-
 
 ```{python}
 # other sjoin option
@@ -210,11 +157,70 @@ print('Object type:', type(combined2_gdf))
 
 # check geometry type
 print('\nGeometry type:', combined2_gdf.geom_type.value_counts())
+
+#rename geo id column to merge with cha later
+combined2_gdf = combined2_gdf.rename(columns={'geoid10':'GEOID'})
+
 ```
 
+MERGE CHICAGO HEALTH ATLAS (CHA) AND PHARMACY DATA
 
 ```{python}
-combined2_gdf.head()
+# Load CHA data
+cha = pd.read_csv('/Users/ariannawooten/Downloads/final_project_AWJP_w26/data/raw-data/Chicago Health Atlas Data Download - Census Tracts.csv')
+cha = cha.iloc[4:809] # remove non-data rows
+
+# source: https://geopandas.org/en/stable/gallery/create_geopandas_from_pandas.html
+cha_gdf = gpd.GeoDataFrame(
+    cha, geometry=gpd.points_from_xy(cha.Longitude, cha.Latitude), crs="EPSG:4326"
+)
+
+# rename combined_gdf1 column for spatial joining purposes
+combined1_gdf.rename(columns={'geoid10':'GEOID'}, inplace=True)
+
+# merge cha and pharmacy/tract data
+cha_pharm = combined2_gdf.merge(cha_gdf, on='GEOID')
+
+
+# merge cha and tract only data
+#cha_tract = census_2010_gdf.merge(cha_gdf, on='GEOID')
+
+# define geometry column for plotting later
+#cha_pharm = cha_pharm.set_geometry('geometry_y')
+
+print(f"shapes: merged = {cha_pharm.shape}, cha_gdf = {cha_gdf.shape}, combined1 = {combined1_gdf.shape}") # we lost about half of the cha data (n=805) and 10/421 of the other data
+
+cha_pharm['geometry_x'] 
+
+# i need to set this as geometry for future chloropleth maps
+cha_pharm = cha_pharm.set_geometry('geometry_x')
+
+
+```
+
+## CREATE PLOTS
+
+```{python}
+# set up plot (Chicago Pharmacy Distribution on census map)
+fig, ax = plt.subplots(figsize=(8,6))
+
+# plot chicago in blue
+census_2010_gdf.plot(ax=ax, color='lightblue', alpha=0.5)
+
+# plot pharmacies
+pharm_gdf.plot(
+    ax=ax,
+    column='Status',
+    categorical=True,
+    legend=True,
+    markersize=5,
+    alpha=0.7
+)
+plt.title('Chicago Pharmacy Distribution')
+plt.tight_layout()
+
+ax.set_axis_off()
+plt.show()
 ```
 
 
@@ -222,7 +228,7 @@ combined2_gdf.head()
 # group data by census tract
 pharm_by_tract = (
     combined1_gdf
-    .groupby('geoid10')
+    .groupby('GEOID')
     .size()
     .reset_index(name='pharmacy_count')
 )
@@ -271,7 +277,41 @@ census_and_pharm_gdf['pharm_density'] = (
     census_and_pharm_gdf['area_sq_miles']
 )
 ```
+ 
 
+## Chloropleth Maps
+```{python}
+#make hardship values numeric
+cha_pharm['HDX_2020-2024'] = pd.to_numeric(cha['HDX_2020-2024'], downcast=None)
+
+
+# make choropleth map for CHA hardship index
+fig, ax = plt.subplots(figsize=(10,10))
+
+cha_pharm.plot(
+    column='HDX_2020-2024',
+    cmap='OrRd',
+    scheme='quantiles',
+    k=5,
+    legend=True,
+ #  legend_kwds={'label': 'Pharmacies Per Square Mile'},
+    linewidth=0.1,
+    edgecolor='grey',
+    ax=ax,
+)
+
+plt.tight_layout()
+ax.set_title('Hardship Index Score\nChicago 2010 Census Tracts')
+ax.axis('off')
+ax.set_axis_off()
+
+
+plt.show()
+```
+
+```{python}
+combined1_gdf.head()
+```
 
 ```{python}
 # make choropleth map (pharm density per square mile)
@@ -283,18 +323,14 @@ census_and_pharm_gdf.plot(
     scheme='quantiles',
     k=5,
     legend=True,
+ #   legend_kwds={'label': 'Pharmacies Per Square Mile'},
     linewidth=0.1,
     edgecolor='grey',
     ax=ax
 )
 
-# add legend title
-leg = ax.get_legend()
-leg.set_title("Pharmacies per Square Mile")
-
 ax.set_title('Pharmacy Density per Square Mile\nChicago 2010 Census Tracts')
 ax.axis('off')
-plt.tight_layout()
 
 plt.show()
 ```
@@ -309,83 +345,50 @@ df_pop.head()
 
 
 
+
 ```{python}
 # create a function to convert
 def blocks_to_tracts(df_pop, geoid_col='CENSUS BLOCK FULL'): 
-    df = df_pop.copy()
 
     # ensure geoid is string
-    df[geoid_col] = df[geoid_col].astype(str).str.zfill(15)
-
-    # convert population to numeric
-    df['TOTAL POPULATION'] = pd.to_numeric(
-        df['TOTAL POPULATION'],
-        errors='coerce'
-    )
+    df_pop[geoid_col] = df_pop[geoid_col].astype(str).str.zfill(15)
 
     # extract tract geoid
-    df['geoid10'] = df[geoid_col].str[:11]
+    df_pop['geoid10'] = df_pop[geoid_col].str[:11]
+
+    # keep only numeric columns for aggregation
+    numeric_cols = df_pop.select_dtypes(include='number').columns
 
     # group by tract and sum numeric values
-    tract_df = (
-        df
-        .groupby('geoid10', as_index=False)['TOTAL POPULATION']
+    pop_tract_df = (
+        df_pop
+        .groupby('geoid10')[numeric_cols]
         .sum()
+        .reset_index()
     )
 
-    return tract_df
+    return pop_tract_df
+
+
 ```
 
 
+
 ```{python}
-# recode population census blocks to census tracts
-pop_tract_df = blocks_to_tracts(df_pop)
-pop_tract_df.head()
+# rename census block column in pop df
+df_pop = df_pop.rename(columns={'CENSUS BLOCK FULL': ''})
 ```
 
 ```{python}
-# merge census tract populations to census and pharm gdf
-cen_tract_pop_gdf = census_and_pharm_gdf.merge(pop_tract_df,
-on='geoid10',
-how='outer'
+# merge population data to census gdf
+census_gdf = census_gdf.merge(
+    df_pop,
+    on=''
 )
 ```
 
 ```{python}
-# create col of number of pharmacies per 1000 residents
-cen_tract_pop_gdf['pharm_per_1000'] = (
-    cen_tract_pop_gdf['pharmacy_count'] / 
-    cen_tract_pop_gdf['TOTAL POPULATION']
-) * 1000
-
-cen_tract_pop_gdf.head()
-```
-
-```{python}
-# make plot of pharmacies per 1000 residents in each census tract
-fig, ax = plt.subplots(figsize=(10,10))
-
-cen_tract_pop_gdf.plot(
-    column='pharm_per_1000',
-    cmap='OrRd',
-    scheme='quantiles',
-    k=5,
-    legend=True,
- #   legend_kwds={'label': 'Pharmacies Per 1000 Residents'},
-    linewidth=0.1,
-    edgecolor='grey',
-    ax=ax
-)
-
-# add legend title
-leg = ax.get_legend()
-leg.set_title("Pharmacies per 1000 Residents")
-
-ax.set_title('Pharmacy Density per 1000 Residents\nChicago 2010 Census Tracts')
-ax.axis('off')
-plt.tight_layout()
-
-plt.show()
+combined1_gdf.columns
 ```
 
 
@@ -477,6 +480,28 @@ pharm_counts2 = (
     .reset_index(name='pharmacy_count')
 )
 ```
+
+```{python}
+combined3_gdf.head()
+```
+
+```{python}
+combined1_gdf.head()
+```
+
+```{python}
+combined1_gdf.columns
+```
+
+
+```{python}
+census_2000_gdf.columns
+```
+
+```{python}
+census_2010_gdf.columns
+```
+
 
 
 
