@@ -13,6 +13,7 @@ from shapely import wkt
 import matplotlib.pyplot as plt
 import altair as alt
 import streamlit as st
+from matplotlib.patches import Patch
 ```
 
 
@@ -144,6 +145,20 @@ assert (census_2010_gdf.crs == pharm_gdf.crs)
 ```
 
 ```{python}
+# map colors to pharmacy status
+
+# create color dictionary
+color_dict = {
+    'Open': 'green',
+    'Closed': 'red',
+    'Unknown': 'purple'
+}
+
+# map colors to gdf
+pharm_gdf['color'] = pharm_gdf['Status'].map(color_dict)
+```
+
+```{python}
 # set up plot (Chicago Pharmacy Distribution on census map)
 fig, ax = plt.subplots(figsize=(8,6))
 
@@ -153,12 +168,25 @@ census_2010_gdf.plot(ax=ax, color='lightblue', alpha=0.5)
 # plot pharmacies
 pharm_gdf.plot(
     ax=ax,
-    column='Status',
-    categorical=True,
-    legend=True,
+    color=pharm_gdf['color'],
     markersize=5,
     alpha=0.7
 )
+
+# create legend handles
+legend_handles = [
+    Patch(facecolor=color, edgecolor='black', label=status)
+    for status, color in color_dict.items()
+] 
+
+# add legend
+ax.legend(
+    handles=legend_handles,
+    title='Pharmacy Status',
+    loc='lower left',
+    frameon=True
+)
+
 plt.title('Chicago Pharmacy Distribution')
 plt.tight_layout()
 
