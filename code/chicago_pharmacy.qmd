@@ -9,15 +9,20 @@ import geopandas as gpd
 import pandas as pd
 from pathlib import Path
 from shapely import wkt
-import pydeck as pdk
+#import pydeck as pdk
 import matplotlib.pyplot as plt
 import altair as alt
+import streamlit as st
 ```
 
 
 ```{python}
 # load 2010 census data
-census_2010_gdf = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\CensusTractsTIGER2010_20260303.geojson')
+#JESSICA'S FILE PATH:
+#census_2010_gdf = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\CensusTractsTIGER2010_20260303.geojson')
+
+#ARIANNA'S FILE PATH:
+census_2010_gdf = gpd.read_file('/Users/ariannawooten/Downloads/final_project_AWJP_w26/data/raw-data/CensusTractsTIGER2010_20260303.geojson')
 ```
 
 ```{python}
@@ -38,14 +43,19 @@ print(census_2010_gdf.columns)
 ```
 
 ```{python}
-# create basic visualization
+# create basic visualization (Chicago census tract map)
 census_2010_gdf.plot().set_axis_off()
 ```
 
 
 ```{python}
 # load data
-data_path = 'C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Pharmacy_Status_-_Historical_20260302.csv'
+#JESSICA'S DATA PATH
+#data_path = 'C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Pharmacy_Status_-_Historical_20260302.csv'
+
+#ARIANNA'S DATA PATH
+data_path = '/Users/ariannawooten/Downloads/final_project_AWJP_w26/data/raw-data/Pharmacy_Status_-_Historical_20260302.csv'
+
 df_pharm = pd.read_csv(data_path)
 ```
 
@@ -117,7 +127,7 @@ print(df_pharm.head())
 
 
 ```{python}
-# join gdfs
+# join pharmacy location and census tract gdfs (pharmacy emphasis)
 combined1_gdf = gpd.sjoin(pharm_gdf, census_2010_gdf, 
     how='left',
     predicate='within')
@@ -134,7 +144,7 @@ assert (census_2010_gdf.crs == pharm_gdf.crs)
 ```
 
 ```{python}
-# set up plot
+# set up plot (Chicago Pharmacy Distribution on census map)
 fig, ax = plt.subplots(figsize=(8,6))
 
 # plot chicago in blue
@@ -160,7 +170,7 @@ plt.show()
 ```{python}
 # other sjoin option
 
-# join gdfs
+# join gdfs (alternative merge with more census data and less pharm data)
 combined2_gdf = gpd.sjoin(census_2010_gdf, pharm_gdf, 
     how='left',
     predicate='intersects')
@@ -234,7 +244,7 @@ census_and_pharm_gdf['pharm_density'] = (
 
 
 ```{python}
-# make choropleth map
+# make choropleth map (pharm density per square mile)
 fig, ax = plt.subplots(figsize=(10,10))
 
 census_and_pharm_gdf.plot(
