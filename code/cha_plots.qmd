@@ -13,6 +13,7 @@ from shapely import wkt
 import matplotlib.pyplot as plt
 import altair as alt
 import streamlit as st
+from matplotlib.patches import Patch
 ```
 
 ## LOADING AND PREPARING 2010 CENSUS GEODATA
@@ -83,8 +84,8 @@ df_pharm['Status'] = df_pharm['Status'].replace(mapping)
 ```
 
 ```{python}
-# make pharmacy names in all caps
-df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.upper()
+# make pharmacy names capitalized
+df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.capitalize()
 ```
 
 
@@ -122,6 +123,21 @@ print(df_pharm.shape)
 print(df_pharm.head())
 
 ```
+
+```{python}
+# map colors to pharmacy status
+
+# create color dictionary
+color_dict = {
+    'Open': 'green',
+    'Closed': 'red',
+    'Unknown': 'purple'
+}
+
+# map colors to gdf
+pharm_gdf['color'] = pharm_gdf['Status'].map(color_dict)
+```
+
 
 ## MERGING PHARMACY, HEALTH, AND CENSUS TRACT DATA
 
@@ -167,7 +183,12 @@ MERGE CHICAGO HEALTH ATLAS (CHA) AND PHARMACY DATA
 
 ```{python}
 # Load CHA data
+### ARIANNA'S CODE
 cha = pd.read_csv('/Users/ariannawooten/Downloads/final_project_AWJP_w26/data/raw-data/Chicago Health Atlas Data Download - Census Tracts.csv')
+
+### JESSICA'S CODE
+#a = pd.read_csv('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Chicago Health Atlas Data Download - Census Tracts.csv')
+
 cha = cha.iloc[4:809] # remove non-data rows
 
 # source: https://geopandas.org/en/stable/gallery/create_geopandas_from_pandas.html
@@ -194,8 +215,6 @@ cha_pharm['geometry_x']
 
 # i need to set this as geometry for future chloropleth maps
 cha_pharm = cha_pharm.set_geometry('geometry_x')
-
-
 ```
 
 ## CREATE PLOTS
@@ -392,7 +411,6 @@ combined1_gdf.columns
 ```
 
 
-
 ```{python}
 # load health data
 df_health = pd.read_csv('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Chicago Health Atlas Data Download - Census Tracts.csv')
@@ -405,13 +423,96 @@ print(df_health.head)
 print(df_health.columns)
 ```
 
+```{python}
+# employment based insurance
+alt.Chart(df_health).mark_circle(size=60).encode(
+    x=alt.X('Population:Q', title='Census Tract Population'),
+    y=alt.Y('EMP_2020-2024:Q', title='Percentage of Residents With Employment-Based Insurance')
+).properties(
+    title='Employment-Based Insurance by Population',
+    height=400,
+    width=500
+)
+```
+
+```{python}
+# walkability
+alt.Chart(df_health).mark_circle(size=60).encode(
+    x=alt.X('Population:Q', title='Total Census Tract Population'),
+    y=alt.Y('RITB_2022:Q', title='Walkability Ranking')
+).properties(
+    title='Walkability Ranking by Census Tract Population',
+    height=400,
+    width=500
+)
+```
+
+
+```{python}
+# save FULL gdf
+# merge cha and pharmacy/tract data
+full_gdf = combined2_gdf.merge(cha_gdf, on='GEOID', how='inner')
+
+
+# merge cha and tract only data
+#cha_tract = census_2010_gdf.merge(cha_gdf, on='GEOID')
+
+# define geometry column for plotting later
+#cha_pharm = cha_pharm.set_geometry('geometry_y')
+
+print(f"shapes: full = {full_gdf.shape}") # 
+
+full_gdf['geometry_x'] 
+
+# i need to set this as geometry for future chloropleth maps
+full_gdf = full_gdf.set_geometry('geometry_x')
+
+print(full_gdf.head())
+```
 
 
 
+```{python}
+# transit density and pharmacies
+
+#make transit values numeric
+cha_pharm['RITB_2022'] = pd.to_numeric(cha_pharm['RITB_2022'], downcast=None)
+
+# make choropleth map (transit burden per census tract)
+fig, ax = plt.subplots(figsize=(10,10))
+
+cha_pharm.plot(
+    column='RITB_2022',
+    cmap='Blues',
+    scheme='quantiles',
+    k=5,
+    legend=True,
+    linewidth=0.1,
+    edgecolor='grey',
+    ax=ax
+)
+
+pharm_gdf.plot(
+    ax=ax,
+    color=pharm_gdf['color'],
+    markersize=35,
+    alpha=0.7,
+    legend='status'
+)
 
 
 
+# add legend title
+leg = ax.get_legend()
+leg.set_title("Relative Transportation Insecurity")
+leg.set_loc('lower left')
 
+ax.set_title('Transportation Burden per Census Tract\nWith Pharmacies in Chicago\nChicago 2010 Census Tracts')
+ax.axis('off')
+plt.tight_layout()
+
+plt.show()
+```
 
 
 
