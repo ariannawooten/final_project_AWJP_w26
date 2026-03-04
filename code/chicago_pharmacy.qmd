@@ -253,14 +253,18 @@ census_and_pharm_gdf.plot(
     scheme='quantiles',
     k=5,
     legend=True,
- #   legend_kwds={'label': 'Pharmacies Per Square Mile'},
     linewidth=0.1,
     edgecolor='grey',
     ax=ax
 )
 
+# add legend title
+leg = ax.get_legend()
+leg.set_title("Pharmacies per Square Mile")
+
 ax.set_title('Pharmacy Density per Square Mile\nChicago 2010 Census Tracts')
 ax.axis('off')
+plt.tight_layout()
 
 plt.show()
 ```
@@ -343,12 +347,16 @@ cen_tract_pop_gdf.plot(
     ax=ax
 )
 
+# add legend title
+leg = ax.get_legend()
+leg.set_title("Pharmacies per 1000 Residents")
+
 ax.set_title('Pharmacy Density per 1000 Residents\nChicago 2010 Census Tracts')
 ax.axis('off')
+plt.tight_layout()
 
 plt.show()
 ```
-
 
 
 
@@ -439,28 +447,6 @@ pharm_counts2 = (
     .reset_index(name='pharmacy_count')
 )
 ```
-
-```{python}
-combined3_gdf.head()
-```
-
-```{python}
-combined1_gdf.head()
-```
-
-```{python}
-combined1_gdf.columns
-```
-
-
-```{python}
-census_2000_gdf.columns
-```
-
-```{python}
-census_2010_gdf.columns
-```
-
 
 
 
