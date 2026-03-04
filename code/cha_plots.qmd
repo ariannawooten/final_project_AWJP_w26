@@ -27,9 +27,6 @@ census_2010_gdf = gpd.read_file('/Users/ariannawooten/Downloads/final_project_AW
 ```
 
 ```{python}
-# explore 2010 census data
-census_2010_gdf.shape
-
 # count geometry by type
 print('Geometry type:', census_2010_gdf.geom_type)
 
@@ -40,7 +37,7 @@ print('\n N features:', len(census_2010_gdf))
 print('\n Coordinate reference system:', census_2010_gdf.crs)
 
 print(census_2010_gdf.head())
-print(census_2010_gdf.columns)
+
 ```
 
 ```{python}
@@ -123,32 +120,10 @@ pharm_gdf = gpd.GeoDataFrame(
 # sanity check
 print(df_pharm.shape)
 print(df_pharm.head())
-```
-
-MERGE CHICAGO HEALTH ATLAS (CHA) AND PHARMACY DATA
-
-```{python}
-# Load CHA data
-cha = pd.read_csv('/Users/ariannawooten/Downloads/final_project_AWJP_w26/data/raw-data/Chicago Health Atlas Data Download - Census Tracts.csv')
-cha = cha.iloc[4:809] # remove non-data rows
-
-# create coordinates column
-cha['coordinates'] = f'{cha['Longitude']}, {cha['Latitude']}'
-cha['coordinates'].head()
-
-# source: https://geopandas.org/en/stable/gallery/create_geopandas_from_pandas.html
-cha = gpd.GeoDataFrame(
-    cha, geometry=gpd.points_from_xy(cha.Longitude, cha.Latitude), crs="EPSG:4326"
-)
-
-# use gpd.merge to merge cha csv to pharmacy gdf
-
-
-
 
 ```
 
-MERGING PHARMACY, HEALTH, AND CENSUS TRACT DATA
+## MERGING PHARMACY, HEALTH, AND CENSUS TRACT DATA
 
 ```{python}
 # join pharmacy location and census tract gdfs (pharmacy emphasis)
@@ -167,7 +142,45 @@ print('\nGeometry type:', combined1_gdf.geom_type.value_counts())
 assert (census_2010_gdf.crs == pharm_gdf.crs)
 ```
 
-CREATE PLOTS
+MERGE CHICAGO HEALTH ATLAS (CHA) AND PHARMACY DATA
+
+```{python}
+# Load CHA data
+cha = pd.read_csv('/Users/ariannawooten/Downloads/final_project_AWJP_w26/data/raw-data/Chicago Health Atlas Data Download - Census Tracts.csv')
+cha = cha.iloc[4:809] # remove non-data rows
+
+# source: https://geopandas.org/en/stable/gallery/create_geopandas_from_pandas.html
+cha_gdf = gpd.GeoDataFrame(
+    cha, geometry=gpd.points_from_xy(cha.Longitude, cha.Latitude), crs="EPSG:4326"
+)
+
+# rename combined_gdf1 column for spatial joining purposes
+combined1_gdf.rename(columns={'geoid10':'GEOID'}, inplace=True)
+
+# merge cha and pharmacy/tract data
+cha_pharm = combined1_gdf.merge(cha_gdf, on='GEOID')
+
+
+# merge cha and tract only data
+cha_tract = census_2010_gdf.merge(cha_gdf, on='GEOID')
+
+# define geometry column for plotting later
+cha_pharm = cha_pharm.set_geometry('geometry_y')
+
+print(f"shapes: merged = {cha_pharm.shape}, cha_gdf = {cha_gdf.shape}, combined1 = {combined1_gdf.shape}") # we lost about half of the cha data (n=805) and 10/421 of the other data
+
+
+```
+
+```{python}
+#combined1_gdf.sjoin(cha_gdf).plot()
+
+combined1_gdf.columns
+
+```
+
+## CREATE PLOTS
+
 ```{python}
 # set up plot (Chicago Pharmacy Distribution on census map)
 fig, ax = plt.subplots(figsize=(8,6))
@@ -217,7 +230,7 @@ combined2_gdf.head()
 # group data by census tract
 pharm_by_tract = (
     combined1_gdf
-    .groupby('geoid10')
+    .groupby('GEOID')
     .size()
     .reset_index(name='pharmacy_count')
 )
@@ -267,6 +280,40 @@ census_and_pharm_gdf['pharm_density'] = (
 )
 ```
  
+
+## Chloropleth Maps
+```{python}
+#make hardship values numeric
+cha_pharm['HDX_2020-2024'] = pd.to_numeric(cha['HDX_2020-2024'], downcast=None)
+
+
+# make choropleth map for CHA hardship index
+fig, ax = plt.subplots(figsize=(10,10))
+
+cha_pharm.plot(
+    column='HDX_2020-2024',
+    cmap='OrRd',
+    scheme='quantiles',
+    k=5,
+    legend=True,
+ #  legend_kwds={'label': 'Pharmacies Per Square Mile'},
+    linewidth=0.1,
+    edgecolor='grey',
+    ax=ax,
+)
+
+plt.tight_layout()
+ax.set_title('Hardship Index Score\nChicago 2010 Census Tracts')
+ax.axis('off')
+ax.set_axis_off()
+
+
+plt.show()
+```
+
+```{python}
+combined1_gdf.head()
+```
 
 ```{python}
 # make choropleth map (pharm density per square mile)
