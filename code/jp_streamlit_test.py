@@ -1,11 +1,14 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import folium
+import streamlit_folium
+from streamlit_folium import folium_static
 
 
 st.write('hello world')
 
-st.title('Chicago Map')
+st.title('Chicago Map Using Pandas')
 
 df = pd.DataFrame(
     np.random.randn(100, 2) / [100,100] + [41.8781, -87.6298],
@@ -13,3 +16,10 @@ df = pd.DataFrame(
 )
 st.map(df)
 
+
+st.title('Chicago Map using Streamlit Folium')
+
+m = folium.Map(location=[41.8781, -87.6298], zoom_start=12)
+folium.Marker([41.8781, -87.6298], popup="Chicago").add_to(m)
+
+folium_static(m)
