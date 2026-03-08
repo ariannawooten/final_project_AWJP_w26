@@ -52,7 +52,7 @@ census_2010_gpd = gpd.read_file(census_2010)
 
 # load population csv
 pop = script_dir / '../data/raw-data/Population_by_2010_Census_Block_20260302.csv'
-pop_csv = pd.read_csv(pop)
+df_pop = pd.read_csv(pop)
 
 #################
 ### CHICAGO HEALTH ATLAS DATA
