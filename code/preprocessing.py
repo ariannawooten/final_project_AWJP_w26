@@ -2,7 +2,7 @@ import geopandas as gpd
 import pandas as pd
 from pathlib import Path
 from shapely import wkt
-import pydeck as pdk
+#import pydeck as pdk
 
 script_dir = Path(__file__).parent
 
@@ -223,7 +223,17 @@ cen_tract_pop_gdf['pharm_per_1000'] = (
 # convert to csv
 cen_tract_pop_gdf.to_csv('cen_tract_pop.csv')
 
+### MERGE CHA WITH THE CENSUS/POP/PHARM DATA (ALL DATA IN ONE DF)
+#rename geo id column to merge with cha later
+cen_tract_pop_gdf = cen_tract_pop_gdf.rename(columns={'geoid10':'GEOID'})
 
+all_gdf = cen_tract_pop_gdf.merge(
+    cha_gdf,
+    on='GEOID',
+    how='left'
+)
+
+all_gdf.to_csv('all_merged.csv')
 
 ### MERGE CHA AND PHARMACIES
 # join gdfs (alternative merge with more census data and less pharm data)
