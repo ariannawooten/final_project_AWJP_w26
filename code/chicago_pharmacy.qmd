@@ -20,11 +20,8 @@ LOADING AND PREPARING 2010 CENSUS GEODATA
 
 ```{python}
 # load 2010 census data
-#JESSICA'S FILE PATH:
-#census_2010_gdf = gpd.read_file('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\CensusTractsTIGER2010_20260303.geojson')
-
-#ARIANNA'S FILE PATH:
-census_2010_gdf = gpd.read_file('/Users/ariannawooten/Downloads/final_project_AWJP_w26/data/raw-data/CensusTractsTIGER2010_20260303.geojson')
+census_2010 = script_dir / '../data/raw-data/CensusTractsTIGER2010_20260303.geojson'
+census_2010_gpd = gpd.read_file(census_2010)
 ```
 
 ```{python}
@@ -52,13 +49,8 @@ census_2010_gdf.plot().set_axis_off()
 LOADING AND PREPARING CHICAGO PHARMACY DATA
 ```{python}
 # load data
-#JESSICA'S DATA PATH
-#data_path = 'C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Pharmacy_Status_-_Historical_20260302.csv'
-
-#ARIANNA'S DATA PATH
-data_path = '/Users/ariannawooten/Downloads/final_project_AWJP_w26/data/raw-data/Pharmacy_Status_-_Historical_20260302.csv'
-
-df_pharm = pd.read_csv(data_path)
+pharmacy = script_dir / '../data/raw-data/Pharmacy_Status_-_Historical_20260302.csv'
+df_pharm = pd.read_csv(pharmacy)
 ```
 
 ```{python}
@@ -302,9 +294,8 @@ plt.show()
 POPULATION EXPERIMENTAL WORK (3/3 - 3:45pm)
 ```{python}
 # load population csv
-df_pop = pd.read_csv('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Population_by_2010_Census_Block_20260302.csv')
-
-df_pop.head()
+pop = script_dir / '../data/raw-data/Population_by_2010_Census_Block_20260302.csv'
+df_pop = pd.read_csv(pop)
 ```
 
 
@@ -387,21 +378,6 @@ plt.tight_layout()
 
 plt.show()
 ```
-
-
-
-```{python}
-# load health data
-df_health = pd.read_csv('C:\\Users\\blueb\\final_project_AWJP_w26\\data\\raw-data\\Chicago Health Atlas Data Download - Census Tracts.csv')
-```
-
-```{python}
-# explore health data
-df_health.shape
-print(df_health.head)
-print(df_health.columns)
-```
-
 
 
 
