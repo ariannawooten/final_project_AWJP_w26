@@ -1,0 +1,226 @@
+---
+title: "Pharmacy Density per Square Mile"
+format: html
+---
+
+
+```{python}
+# load packages
+import geopandas as gpd
+import pandas as pd
+from pathlib import Path
+from shapely import wkt
+#import pydeck as pdk
+import matplotlib.pyplot as plt
+import altair as alt
+import streamlit as st
+from matplotlib.patches import Patch
+script_dir = Path(__file__).parent
+```
+
+LOADING AND PREPARING 2010 CENSUS GEODATA
+
+```{python}
+# load 2010 census data
+census_2010 = script_dir / '../data/raw-data/CensusTractsTIGER2010_20260303.geojson'
+census_2010_gdf = gpd.read_file(census_2010)
+```
+
+
+LOADING AND PREPARING CHICAGO PHARMACY DATA
+```{python}
+# load pharmacy data
+pharmacy = script_dir / '../data/raw-data/Pharmacy_Status_-_Historical_20260302.csv'
+df_pharm = pd.read_csv(pharmacy)
+```
+
+```{python}
+# check pharmacy status
+df_pharm['Status'].unique()
+
+# create mapping for pharmacy status
+mapping = {
+    'OPEN':'Open',
+    'CLOSED': 'Closed',
+    'Permanently closed': 'Closed',
+    'closed': 'Closed',
+    'open': 'Open',
+    'permanently closed': 'Closed',
+    'unknown': 'Unknown'
+}
+
+# recode the status column
+df_pharm['Status'] = df_pharm['Status'].replace(mapping)
+```
+
+```{python}
+# make pharmacy names capitalized
+df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.capitalize()
+```
+
+
+```{python}
+# load pharmacies as a geodataframe
+
+# drop nas
+df_pharm = df_pharm.dropna(subset=['New Georeferenced Column'])
+
+# drop na strings
+df_pharm = df_pharm[
+    df_pharm['New Georeferenced Column']
+    .str.lower()
+    .ne('nan')
+]
+
+# convert wkt to a geometry
+df_pharm['geometry'] = gpd.GeoSeries.from_wkt(
+    df_pharm['New Georeferenced Column'],
+    on_invalid='ignore'
+)
+
+# drop failed parses
+df_pharm = df_pharm.dropna(subset=['geometry'])
+
+# create geodataframe
+pharm_gdf = gpd.GeoDataFrame(
+    df_pharm,
+    geometry='geometry',
+    crs='EPSG:4326'
+)
+
+# sanity check
+print(df_pharm.shape)
+print(df_pharm.head())
+```
+
+MERGING PHARMACY, HEALTH, AND CENSUS TRACT DATA
+
+```{python}
+# join pharmacy location and census tract gdfs (pharmacy emphasis)
+combined1_gdf = gpd.sjoin(pharm_gdf, census_2010_gdf, 
+    how='left',
+    predicate='within')
+
+# check object type
+print('Object type:', type(combined1_gdf))
+
+# check geometry type
+print('\nGeometry type:', combined1_gdf.geom_type.value_counts())
+```
+
+```{python}
+assert (census_2010_gdf.crs == pharm_gdf.crs)
+```
+
+CREATE PLOTS
+```{python}
+# map colors to pharmacy status
+
+# create color dictionary
+color_dict = {
+    'Open': 'green',
+    'Closed': 'red',
+    'Unknown': 'purple'
+}
+
+# map colors to gdf
+pharm_gdf['color'] = pharm_gdf['Status'].map(color_dict)
+```
+
+```{python}
+# other sjoin option
+
+# join gdfs (alternative merge with more census data and less pharm data)
+combined2_gdf = gpd.sjoin(census_2010_gdf, pharm_gdf, 
+    how='left',
+    predicate='intersects')
+
+# check object type
+print('Object type:', type(combined2_gdf))
+
+# check geometry type
+print('\nGeometry type:', combined2_gdf.geom_type.value_counts())
+```
+
+```{python}
+# group data by census tract
+pharm_by_tract = (
+    combined1_gdf
+    .groupby('geoid10')
+    .size()
+    .reset_index(name='pharmacy_count')
+)
+
+# count pharmacies per census tract
+pharm_by_tract.shape
+```
+
+```{python}
+# count pharmacies per tract
+pharm_counts = (
+    combined1_gdf
+    .groupby('tractce10')
+    .size()
+    .reset_index(name='pharmacy_count')
+)
+```
+
+```{python}
+# merge counts back to census polygons
+census_and_pharm_gdf = census_2010_gdf.merge(
+    pharm_counts,
+    on='tractce10',
+    how='left'
+)
+
+# fill missing tracts with zero pharmacies
+census_and_pharm_gdf['pharmacy_count'] = (
+    census_and_pharm_gdf['pharmacy_count']
+    .fillna(0)
+)
+```
+
+```{python}
+# project to crs in meters
+census_and_pharm_gdf = census_and_pharm_gdf.to_crs(epsg=26916)
+
+# calculate area in square miles
+census_and_pharm_gdf['area_sq_miles'] = (
+    census_and_pharm_gdf.geometry.area / 2_589_988
+)
+
+# compute density
+census_and_pharm_gdf['pharm_density'] = (
+    census_and_pharm_gdf['pharmacy_count'] /
+    census_and_pharm_gdf['area_sq_miles']
+)
+```
+
+```{python}
+# make choropleth map (pharm density per square mile)
+fig, ax = plt.subplots(figsize=(10,10))
+
+census_and_pharm_gdf.plot(
+    column='pharm_density',
+    cmap='OrRd',
+    scheme='quantiles',
+    k=5,
+    legend=True,
+    linewidth=0.1,
+    edgecolor='grey',
+    ax=ax
+)
+
+# add legend title
+leg = ax.get_legend()
+leg.set_title("Pharmacies per Square Mile")
+leg.set_loc('lower left')
+
+ax.set_title('Pharmacy Density per Square Mile\nChicago 2010 Census Tracts')
+ax.axis('off')
+plt.tight_layout()
+
+plt.savefig('pharm_dens_sqmi.png', bbox_inches='tight')
+
+plt.show()
+```
