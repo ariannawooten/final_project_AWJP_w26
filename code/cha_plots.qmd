@@ -323,7 +323,8 @@ pharm_gdf.plot(
     color=pharm_gdf['color'],
     markersize=35,
     alpha=0.7,
-    legend='status'
+    legend='status',
+    edgecolor='white'
 )
 
 
@@ -503,7 +504,8 @@ pharm_gdf.plot(
     color=pharm_gdf['color'],
     markersize=35,
     alpha=0.7,
-    legend='status'
+    legend='status',
+    edgecolor='white'
 )
 
 
@@ -545,7 +547,8 @@ pharm_gdf.plot(
     color=pharm_gdf['color'],
     markersize=35,
     alpha=0.7,
-    legend='status'
+    legend='status',
+    edgecolor='white'
 )
 
 # add legend title
