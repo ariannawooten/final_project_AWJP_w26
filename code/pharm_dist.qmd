@@ -1,0 +1,193 @@
+---
+title: "Pharmacy Distribution"
+format: html
+---
+
+```{python}
+# load packages
+import geopandas as gpd
+import pandas as pd
+from pathlib import Path
+from shapely import wkt
+#import pydeck as pdk
+import matplotlib.pyplot as plt
+import altair as alt
+import streamlit as st
+from matplotlib.patches import Patch
+script_dir = Path(__file__).parent
+```
+
+LOADING AND PREPARING 2010 CENSUS GEODATA
+
+```{python}
+# load 2010 census data
+census_2010 = script_dir / '../data/raw-data/CensusTractsTIGER2010_20260303.geojson'
+census_2010_gdf = gpd.read_file(census_2010)
+```
+
+```{python}
+# explore 2010 census data
+census_2010_gdf.shape
+
+# count geometry by type
+print('Geometry type:', census_2010_gdf.geom_type)
+
+# count total number of features
+print('\n N features:', len(census_2010_gdf))
+
+# get crs
+print('\n Coordinate reference system:', census_2010_gdf.crs)
+
+print(census_2010_gdf.head())
+print(census_2010_gdf.columns)
+```
+
+```{python}
+# create basic visualization (Chicago census tract map)
+census_2010_gdf.plot().set_axis_off()
+```
+
+LOADING AND PREPARING CHICAGO PHARMACY DATA
+```{python}
+# load data
+pharmacy = script_dir / '../data/raw-data/Pharmacy_Status_-_Historical_20260302.csv'
+df_pharm = pd.read_csv(pharmacy)
+```
+
+```{python}
+# explore data
+df_pharm.shape
+df_pharm.head()
+```
+
+```{python}
+# check pharmacy status
+df_pharm['Status'].unique()
+
+# create mapping for pharmacy status
+mapping = {
+    'OPEN':'Open',
+    'CLOSED': 'Closed',
+    'Permanently closed': 'Closed',
+    'closed': 'Closed',
+    'open': 'Open',
+    'permanently closed': 'Closed',
+    'unknown': 'Unknown'
+}
+
+# recode the status column
+df_pharm['Status'] = df_pharm['Status'].replace(mapping)
+```
+
+```{python}
+# make pharmacy names capitalized
+df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.capitalize()
+```
+
+
+```{python}
+# load pharmacies as a geodataframe
+
+# drop nas
+df_pharm = df_pharm.dropna(subset=['New Georeferenced Column'])
+
+# drop na strings
+df_pharm = df_pharm[
+    df_pharm['New Georeferenced Column']
+    .str.lower()
+    .ne('nan')
+]
+
+# convert wkt to a geometry
+df_pharm['geometry'] = gpd.GeoSeries.from_wkt(
+    df_pharm['New Georeferenced Column'],
+    on_invalid='ignore'
+)
+
+# drop failed parses
+df_pharm = df_pharm.dropna(subset=['geometry'])
+
+# create geodataframe
+pharm_gdf = gpd.GeoDataFrame(
+    df_pharm,
+    geometry='geometry',
+    crs='EPSG:4326'
+)
+
+# sanity check
+print(df_pharm.shape)
+print(df_pharm.head())
+```
+
+MERGING PHARMACY, HEALTH, AND CENSUS TRACT DATA
+
+```{python}
+# join pharmacy location and census tract gdfs (pharmacy emphasis)
+combined1_gdf = gpd.sjoin(pharm_gdf, census_2010_gdf, 
+    how='left',
+    predicate='within')
+
+# check object type
+print('Object type:', type(combined1_gdf))
+
+# check geometry type
+print('\nGeometry type:', combined1_gdf.geom_type.value_counts())
+```
+
+```{python}
+assert (census_2010_gdf.crs == pharm_gdf.crs)
+```
+
+CREATE PLOTS
+```{python}
+# map colors to pharmacy status
+
+# create color dictionary
+color_dict = {
+    'Open': 'green',
+    'Closed': 'red',
+    'Unknown': 'purple'
+}
+
+# map colors to gdf
+pharm_gdf['color'] = pharm_gdf['Status'].map(color_dict)
+```
+
+```{python}
+# set up plot (Chicago Pharmacy Distribution on census map)
+fig, ax = plt.subplots(figsize=(8,6))
+
+# plot chicago in blue
+census_2010_gdf.plot(ax=ax, color='lightblue', alpha=0.5)
+
+# plot pharmacies
+pharm_gdf.plot(
+    ax=ax,
+    color=pharm_gdf['color'],
+    markersize=5,
+    alpha=0.7
+)
+
+# create legend handles
+legend_handles = [
+    Patch(facecolor=color, edgecolor='black', label=status)
+    for status, color in color_dict.items()
+] 
+
+# add legend
+ax.legend(
+    handles=legend_handles,
+    title='Pharmacy Status',
+    loc='lower left',
+    frameon=True
+)
+
+plt.title('Chicago Pharmacy Distribution')
+plt.tight_layout()
+
+ax.set_axis_off()
+
+plt.savefig('pharm_dist.png', bbox_inches='tight')
+
+plt.show()
+```
