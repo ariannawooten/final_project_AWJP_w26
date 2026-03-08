@@ -44,7 +44,7 @@ census_2000_gpd = gpd.read_file(census_2000)
 
 # load census tract gdf
 census_2010 = script_dir / '../data/raw-data/CensusTractsTIGER2010_20260303.geojson'
-census_2010_gpd = gpd.read_file(census_2000)
+census_2010_gpd = gpd.read_file(census_2010)
 
 
 #################
