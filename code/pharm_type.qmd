@@ -1,0 +1,137 @@
+---
+title: "Pharmacy Type Counts"
+format: html
+---
+
+
+```{python}
+# load packages
+# load packages
+import geopandas as gpd
+import pandas as pd
+from pathlib import Path
+from shapely import wkt
+#import pydeck as pdk
+import matplotlib.pyplot as plt
+import altair as alt
+import streamlit as st
+from matplotlib.patches import Patch
+script_dir = Path(__file__).parent
+```
+
+
+```{python}
+# load data
+pharmacy = script_dir / '../data/raw-data/Pharmacy_Status_-_Historical_20260302.csv'
+df_pharm = pd.read_csv(pharmacy)
+```
+
+```{python}
+# explore data
+print(df_pharm.shape)
+df_pharm.head()
+```
+
+```{python}
+# check pharmacy status
+df_pharm['Status'].unique()
+
+# create mapping for pharmacy status
+mapping = {
+    'OPEN':'Open',
+    'CLOSED': 'Closed',
+    'Permanently closed': 'Closed',
+    'closed': 'Closed',
+    'open': 'Open',
+    'permanently closed': 'Closed',
+    'unknown': 'Unknown'
+}
+
+# recode the status column
+df_pharm['Status'] = df_pharm['Status'].replace(mapping)
+```
+
+```{python}
+# make pharmacy names lowercase
+df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.lower()
+```
+
+
+```{python}
+# explore pharmacy names
+print(df_pharm['Pharmacy Name'].unique())
+```
+ 
+
+```{python}
+# recode pharmacy names
+
+# create function
+def recode_string(name):
+
+    if 'walgreens' in name:
+        return 'Walgreens Pharmacy'
+    elif 'cvs' in name:
+        return 'CVS Pharmacy'
+    elif 'csco' in name:
+        return 'Osco Pharmacy'
+    elif 'costco' in name:
+        return 'Costco Pharmacy'
+    elif 'walmart' in name:
+        return "Walmart Pharmacy"
+    elif 'hospital' in name:
+        return 'Hospital Pharmacy'
+    elif "mariano's" in name:
+        return "Mariano's Pharmacy"
+    else:
+        return 'Independent Pharmacy'
+
+df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].apply(recode_string)
+
+print(df_pharm['Pharmacy Name'].unique())
+```
+
+```{python}
+# group pharmacies by name
+pharm_grouped = df_pharm.groupby('Pharmacy Name').size()
+pharm_grouped
+```
+
+```{python}
+# move index into a column so altair can read it
+pharm_grouped = df_pharm.groupby('Pharmacy Name').size().reset_index(name='Num Pharmacies')
+
+# make a plot of common pharmacies
+bars = alt.Chart(pharm_grouped).mark_bar().encode(
+    x=alt.X('Num Pharmacies:Q', title='Pharmacy Total'),
+    y=alt.Y('Pharmacy Name:N', title='Pharmacy Name', sort='-x')
+).properties(
+        width=400, 
+        height=200 
+)
+
+text = bars.mark_text(\
+    align='left',
+    baseline='middle',
+    dx=3
+).encode(
+    text='Num Pharmacies:Q'
+)
+
+chart = (bars + text).properties(
+    title='Most Common Pharmacies in Chicago'
+).configure_axis(
+    labelFontSize=6,
+    labelLimit=400
+)
+
+chart
+```
+
+```{python}
+# save chart
+
+# save chart as a png
+chart.save('pharm_type.png')
+```
+
