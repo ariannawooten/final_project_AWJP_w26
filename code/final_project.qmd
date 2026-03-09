@@ -19,10 +19,12 @@ include-before-body:
 output:
   echo: false
   eval: false
+execute:
+    echo: false
 ---
 
 
-The Relative Hardship Index Score plot (hardship_pharm.png) displays a choropleth of Chicago census tracts, populated by the relative hardship scores compared to other census tracts. The Hardship Index is a composite score reflecting hardship in the community that allows for comparison across geographies. Darker colors represent higher levels of hardship. The distribution of pharmacies in Chicago is laid over the hardship choropleth. We created this plot using matplotlib. It suggests that areas with lower levels of hardship tend to have fewer pharmacies, but the distribution could be a result of lower populations in lower hardship tracts.
+
 
 ```{python echo=False}
 # load packages
@@ -35,19 +37,66 @@ import altair as alt
 import streamlit as st
 from matplotlib.patches import Patch
 import matplotlib.lines as mlines
-script_dir = Path(__file__).parent
+import os
+#script_dir = Path(__file__).parent
+```
+
+
+```{python echo=False}
+project_dir = Path.cwd().parent
+data_dir = project_dir / "data" / "raw-data"
+
+census_2010 = data_dir / "CensusTractsTIGER2010_20260303.geojson"
+
+census_2010_gdf = gpd.read_file(census_2010)
+```
+
+
+
+```{python echo=False}
+#data_dir = Path("data") / "raw-data"
+#census_2010 = data_dir / "CensusTractsTIGER2010_20260303.geojson"
+
+#census_2010_gdf = gpd.read_file(census_2010)
+```
+
+
+
+
+```{python echo=False}
+#census_2010 = Path('data/raw-data/CensusTractsTIGER2010_20260303.geojson')
+#census_2010_gdf = gpd.read_file(census_2010)
 ```
 
 ```{python echo=False}
+#file_path = os.getcwd() + '/data/raw-data/CensusTractsTIGER2010_20260303.geojson'
+#df = read_parking_tickets(file_path)
+```
+
+
+```{python echo=False}
 # load 2010 census data
-census_2010 = script_dir / '../data/raw-data/CensusTractsTIGER2010_20260303.geojson'
-census_2010_gdf = gpd.read_file(census_2010)
+#census_2010 = script_dir / "../data/raw-data"
+#census_2010_gdf = gpd.read_file(census_2010 / "CensusTractsTIGER2010_20260303.geojson")
+```
+
+```{python echo=False}
+project_dir = Path.cwd().parent
+data_dir = project_dir / "data" / "raw-data"
+
+pharmacy = data_dir / "Pharmacy_Status_-_Historical_20260302.csv"
+
+df_pharm = pd.read_csv(pharmacy)
 ```
 
 ```{python echo=False}
 # load pharmacy data
-pharmacy = script_dir / '../data/raw-data/Pharmacy_Status_-_Historical_20260302.csv'
-df_pharm = pd.read_csv(pharmacy)
+#pharmacy = script_dir / "../data/raw-data"
+#df_pharm = pd.read_csv(pharmacy / "Pharmacy_Status_-_Historical_20260302.csv")
+
+#pharmacy = data_dir / "Pharmacy_Status_-_Historical_20260302.csv"
+
+#df_pharm = pd.read_csv(pharmacy)
 
 # make pharmacy names capitalized
 df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.capitalize()
@@ -116,14 +165,6 @@ pharm_gdf['color'] = pharm_gdf['Status'].map(color_dict)
 combined1_gdf = gpd.sjoin(pharm_gdf, census_2010_gdf, 
     how='left',
     predicate='within')
-
-# check object type
-print('Object type:', type(combined1_gdf))
-
-# check geometry type
-print('\nGeometry type:', combined1_gdf.geom_type.value_counts())
-
-combined1_gdf['geometry']
 ```
 
 ```{python echo=False}
@@ -134,20 +175,20 @@ combined2_gdf = gpd.sjoin(census_2010_gdf, pharm_gdf,
     how='left',
     predicate='intersects')
 
-# check object type
-print('Object type:', type(combined2_gdf))
-
-# check geometry type
-print('\nGeometry type:', combined2_gdf.geom_type.value_counts())
-
 #rename geo id column to merge with cha later
 combined2_gdf = combined2_gdf.rename(columns={'geoid10':'GEOID'})
 ```
 
 ```{python echo=False}
-# Load CHA data
-cha_datapath = script_dir / '../data/raw-data/Chicago Health Atlas Data Download - Census Tracts.csv'
+cha_datapath = data_dir / "Chicago Health Atlas Data Download - Census Tracts.csv"
+
 cha = pd.read_csv(cha_datapath)
+```
+
+```{python echo=False}
+# Load CHA data
+#cha_datapath = script_dir / '../data/raw-data/Chicago Health Atlas Data Download - Census Tracts.csv'
+#cha = pd.read_csv(cha_datapath)
 
 # remove first 3 rows, which have data definitions, citations, etc.
 cha = cha.iloc[4:809]
@@ -172,7 +213,7 @@ cha_tract = census_2010_gdf.merge(cha_gdf, on='GEOID')
 # define geometry column for plotting later
 cha_pharm = cha_pharm.set_geometry('geometry_y')
 
-print(f"shapes: merged = {cha_pharm.shape}, cha_gdf = {cha_gdf.shape}, combined1 = {combined1_gdf.shape}") # we lost about half of the cha data (n=805) and 10/421 of the other data
+
 
 cha_pharm['geometry_x'] 
 
