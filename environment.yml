@@ -1,9 +1,14 @@
-name: fire_analysis
+name: pharmacy_analysis
 channels:
   - conda-forge
 dependencies:
   - python=3.11
   - pandas
   - geopandas
-  - matplotlib
+  - matplotlib.pyplot
   - shapely
+  - pathlib
+  - altair
+  - streamlit
+  - matplotlib.patches
+  - matplotlib.lines
