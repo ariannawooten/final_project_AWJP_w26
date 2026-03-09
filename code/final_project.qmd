@@ -38,7 +38,6 @@ import streamlit as st
 from matplotlib.patches import Patch
 import matplotlib.lines as mlines
 import os
-#script_dir = Path(__file__).parent
 ```
 
 
@@ -52,34 +51,6 @@ census_2010_gdf = gpd.read_file(census_2010)
 ```
 
 
-
-```{python echo=False}
-#data_dir = Path("data") / "raw-data"
-#census_2010 = data_dir / "CensusTractsTIGER2010_20260303.geojson"
-
-#census_2010_gdf = gpd.read_file(census_2010)
-```
-
-
-
-
-```{python echo=False}
-#census_2010 = Path('data/raw-data/CensusTractsTIGER2010_20260303.geojson')
-#census_2010_gdf = gpd.read_file(census_2010)
-```
-
-```{python echo=False}
-#file_path = os.getcwd() + '/data/raw-data/CensusTractsTIGER2010_20260303.geojson'
-#df = read_parking_tickets(file_path)
-```
-
-
-```{python echo=False}
-# load 2010 census data
-#census_2010 = script_dir / "../data/raw-data"
-#census_2010_gdf = gpd.read_file(census_2010 / "CensusTractsTIGER2010_20260303.geojson")
-```
-
 ```{python echo=False}
 project_dir = Path.cwd().parent
 data_dir = project_dir / "data" / "raw-data"
@@ -90,14 +61,6 @@ df_pharm = pd.read_csv(pharmacy)
 ```
 
 ```{python echo=False}
-# load pharmacy data
-#pharmacy = script_dir / "../data/raw-data"
-#df_pharm = pd.read_csv(pharmacy / "Pharmacy_Status_-_Historical_20260302.csv")
-
-#pharmacy = data_dir / "Pharmacy_Status_-_Historical_20260302.csv"
-
-#df_pharm = pd.read_csv(pharmacy)
-
 # make pharmacy names capitalized
 df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.capitalize()
 
@@ -180,16 +143,13 @@ combined2_gdf = combined2_gdf.rename(columns={'geoid10':'GEOID'})
 ```
 
 ```{python echo=False}
+# load cha data
 cha_datapath = data_dir / "Chicago Health Atlas Data Download - Census Tracts.csv"
 
 cha = pd.read_csv(cha_datapath)
 ```
 
 ```{python echo=False}
-# Load CHA data
-#cha_datapath = script_dir / '../data/raw-data/Chicago Health Atlas Data Download - Census Tracts.csv'
-#cha = pd.read_csv(cha_datapath)
-
 # remove first 3 rows, which have data definitions, citations, etc.
 cha = cha.iloc[4:809]
 
@@ -213,9 +173,6 @@ cha_tract = census_2010_gdf.merge(cha_gdf, on='GEOID')
 # define geometry column for plotting later
 cha_pharm = cha_pharm.set_geometry('geometry_y')
 
-
-
-cha_pharm['geometry_x'] 
 
 # set as geometry for future chloropleth maps
 cha_pharm = cha_pharm.set_geometry('geometry_x')
@@ -265,6 +222,13 @@ census_and_pharm_gdf['pharm_density'] = (
     census_and_pharm_gdf['area_sq_miles']
 )
 ```
+
+This writeup aims to provide additional information and context for the associated data project, “Socioeconomic Distributions and Pharmacies in Chicago”. The project utilizes public health and pharmacy data to explore the relationships between pharmacy access and socioeconomic status. Our research is founded on the question of whether there is a relationship between pharmacy access and socioeconomic status (race, income, etc.) in the City of Chicago. The following sections of this text address the policy implications of our research questions, data collection, data analysis and coding, data visualizations, and our findings. 
+Our research questions have significant implications on the advancement of socioeconomic equity and health outcomes in the city of Chicago. Firstly, it is well established in the literature that low pharmacy access is significantly correlated with majority non-white populations, presence of a disability, low education, and other socioeconomic factors (Wittenhauer et al. 2024). These low-access communities are at greater risk of health problems due to difficulty in accessing prescriptions. This is of particular concern for the City of Chicago, which is highly segregated by race, income, and health outcomes (Smith et al. 2021). Thus, our research aims to identify regions that may benefit from increased pharmacy access, whether that be through a new pharmacy opening, pharmacy shuttles, or otherwise. With more information on pharmacy access and need across the City of Chicago, policymakers would be better equipped to help underserved communities improve public health.
+We utilized four datasets to address our questions regarding health, socioeconomic status, and pharmacy access. The first two datasets are from the Chicago Data Center. The first, linked here, provides data on the geographical boundaries of Chicago’s census tracts and was used to (1) create a map of Chicago’s census tracts and (2) attribute pharmacy locations to their corresponding census tract. The second dataset (link) is titled “Pharmacy Status Map - Historical” and provided our geographic data for Chicago pharmacies; this dataset also included the status (opened, closed, or unknown) of each pharmacy. A significant limitation from this dataset is that it seems to be missing a substantial number of pharmacy locations, although it is unclear if there is a specific type of pharmacy that was more likely to be left out than others. Lastly, we utilized data from the Chicago Health Atlas (link), which provided data on income, walkability, transportation access, and other socioeconomic variables–all aggregated by census tract. This dataset lacked substantial health data at the census tract level, forcing us to focus on socioeconomic disparities as opposed to health disparities. 
+Data cleaning involved converting certain variables into geospatial or numeric data, as appropriate, in addition to formatting processes that standardized our data. Firstly, we loaded in the pharmacy location data, made all of the pharmacy names a string with the first letter capitalized, and recoded the pharmacy status variable such that it only included “Open”, “Closed”, and “Unknown”. Previously, status values varied by capitalization and included “closed” and “permanently closed”, which we treated as equal. The census tract boundary data was loaded as a geodataframe using the geopandas library, and required no additional cleaning other than renaming the “geoid10” column (“GEOID” is the ID number assigned to each census tract) in order to merge it with the other datasets. After loading in the raw Chicago Health Atlas data, we had to remove the first three columns, which included variable definitions and citations. Finally, the pharmacy location data and census boundary data were merged via a spatial join (each pharmacy was assigned a census tract) and the socioeconomic data from Chicago Health Atlas was merged based on the “GEOID” column. The data processing code is available in preprocessing.py. 
+The Relative Hardship Index Score plot (hardship_pharm.png) displays a choropleth (color-coded map) of Chicago census tracts, populated by the relative hardship scores compared to other census tracts. The Hardship Index is a composite score reflecting hardship in the community that allows for comparison across geographies. Darker colors represent higher levels of hardship. The distribution of pharmacies in Chicago is laid over the hardship choropleth. We created this plot using matplotlib. It suggests that areas with lower levels of hardship tend to have fewer pharmacies, but the distribution could be a result of lower populations in lower hardship tracts. 
+
 
 ```{python echo=False}
 #make hardship values numeric
@@ -324,11 +288,176 @@ ax.set_axis_off()
 plt.show()
 ```
 
+The Per Capita Income per Chicago Census Tract plot (inc_pharm.png) displays a choropleth of per capita income of each Chicago census tract. Darker colors represent higher levels of per capita income. The distribution of Chicago pharmacies is laid over the choropleth. The plot was created using matplotlib. It suggests that there is a correlation between census tract income and pharmacy presence, with higher tract income being associated with higher numbers of pharmacies. 
+
+```{python}
+# plot per capita income and pharmacy density
+
+# change per capita income variable from float to integer
+cha_pharm['PCI_2020-2024'] = pd.to_numeric(cha_pharm['PCI_2020-2024'], downcast=None)
+
+# make choropleth map (per capita income per census tract)
+fig, ax = plt.subplots(figsize=(10,10))
+
+# plot per capita income
+cha_pharm.plot(
+    column='PCI_2020-2024',
+    cmap='Blues',
+    scheme='quantiles',
+    k=5,
+    legend=True,
+    linewidth=0.1,
+    edgecolor='grey',
+    ax=ax
+)
+
+# save the choropleth legend
+choropleth_legend = ax.get_legend()
+choropleth_legend.set_title('Per Capita Income')
+choropleth_legend.set_loc('lower left')
+
+# plot pharmacies
+pharm_gdf.plot(
+    ax=ax,
+    color=pharm_gdf['color'],
+    markersize=35,
+    alpha=0.7,
+    legend='status',
+    edgecolor='white'
+)
+
+# create custom legend labels
+open_handle = mlines.Line2D([], [], color='green', marker='o', linestyle='None', markersize=5, label='Open')
+closed_handle = mlines.Line2D([], [], color='red', marker='o', linestyle='None', markersize=5, label='Closed')
+unknown_handle = mlines.Line2D([], [], color='purple', marker='o', linestyle='None', markersize=5, label='Unknown')
+
+# add pharmacy legend
+pharm_legend = ax.legend(
+    handles=[open_handle, closed_handle, unknown_handle],
+    title='Pharmacy Status',
+    loc='upper right'
+)
+
+# add the first legend back
+ax.add_artist(choropleth_legend)
 
 
+ax.set_title('Per Capita Income per Chicago Census Tract\nWith Pharmacy Distribution\nChicago 2010 Census Tracts')
+ax.axis('off')
+plt.tight_layout()
+
+plt.savefig('inc_pharm.png', bbox_inches='tight')
 
 
+plt.show()
+```
 
+The Pharmacy Density per Square Mile plot (pharm_dens_sqmi.png) displays a choropleth of the number of pharmacies per square mile for each Chicago census tract. Darker colors represent higher levels of pharmacies per square mile. The plot was created in matplotlib. The plot indicates that there are more pharmacies per tract square mile in the north and west sides compared to the south side. Traditionally, the north, west, and south sides of Chicago have distinctly different racial populations with the north side composed of a mostly white population while racial minorities compose the majority of the population in the west and south sides. This trend suggests that racial minorities in the south side lack access to a disproportionate number of pharmacies compared to populations in the north and west side.
+
+```{python}
+# make choropleth map (pharm density per square mile)
+fig, ax = plt.subplots(figsize=(10,10))
+
+census_and_pharm_gdf.plot(
+    column='pharm_density',
+    cmap='OrRd',
+    scheme='quantiles',
+    k=5,
+    legend=True,
+    linewidth=0.1,
+    edgecolor='grey',
+    ax=ax
+)
+
+# add legend title
+leg = ax.get_legend()
+leg.set_title("Pharmacies per Square Mile")
+leg.set_loc('lower left')
+
+ax.set_title('Pharmacy Density per Square Mile\nChicago 2010 Census Tracts')
+ax.axis('off')
+plt.tight_layout()
+
+plt.savefig('pharm_dens_sqmi.png', bbox_inches='tight')
+
+plt.show()
+```
+
+The Chicago Pharmacy Distribution plot (pharm_dist.png) displays the presence of pharmacies across Chicago colored by their operational status (open, closed, or unknown). The plot is created in matplotlib. The distribution of pharmacies is higher in the north side of Chicago compared to the west and south sides. The presence of closed pharmacies is highest in the Loop and in the south side. This indicates that the north side, which is wealthier and composed of higher levels of white people compared to other parts of Chicago, has increased access to pharmacies compared to other areas of Chicago.
+
+```{python}
+# set up plot (Chicago Pharmacy Distribution on census map)
+fig, ax = plt.subplots(figsize=(8,6))
+
+# plot chicago in blue
+census_2010_gdf.plot(ax=ax, color='lightblue', alpha=0.5)
+
+# plot pharmacies
+pharm_gdf.plot(
+    ax=ax,
+    color=pharm_gdf['color'],
+    markersize=5,
+    alpha=0.7
+)
+
+# create legend handles
+legend_handles = [
+    Patch(facecolor=color, edgecolor='black', label=status)
+    for status, color in color_dict.items()
+] 
+
+# add legend
+ax.legend(
+    handles=legend_handles,
+    title='Pharmacy Status',
+    loc='lower left',
+    frameon=True
+)
+
+plt.title('Chicago Pharmacy Distribution')
+plt.tight_layout()
+
+ax.set_axis_off()
+
+plt.savefig('pharm_dist.png', bbox_inches='tight')
+
+plt.show()
+```
+
+The Most Common Pharmacies in Chicago barplot (pharm_type.png) displays the distribution of Chicago pharmacy types. The plot was created using Altair. Most pharmacies in Chicago are independently owned, with the second most common being those operated by Walgreens. There is a large drop between the first and second most common pharmacy types compared to all others. The distribution suggests that local pharmacies are able to effectively serve their community and remain in business.  
+
+```{python}
+# move index into a column so altair can read it
+pharm_grouped = df_pharm.groupby('Pharmacy Name').size().reset_index(name='Num Pharmacies')
+
+# make a plot of common pharmacies
+bars = alt.Chart(pharm_grouped).mark_bar().encode(
+    x=alt.X('Num Pharmacies:Q', title='Pharmacy Total'),
+    y=alt.Y('Pharmacy Name:N', title='Pharmacy Name', sort='-x')
+).properties(
+        width=400, 
+        height=200 
+)
+
+text = bars.mark_text(\
+    align='left',
+    baseline='middle',
+    dx=3
+).encode(
+    text='Num Pharmacies:Q'
+)
+
+chart = (bars + text).properties(
+    title='Most Common Pharmacies in Chicago'
+).configure_axis(
+    labelFontSize=6,
+    labelLimit=400
+)
+
+chart
+```
+
+The Pharmacy Density per 1000 Residents plot (residents_pharm.png) displays the distribution of pharmacies per 1000 residents for each Chicago census tract. Darker colors represent higher densities of residents per each tract. The plot was created using matplot lib. The plot indicates that the proportion of pharmacies to residents is generally lowest in the north side, with higher proportions in other city areas. The disproportionate distribution of pharmacies can either be a result of higher population density in the north side or due to the west and south sides lacking adequate pharmacy service.
 
 
 
