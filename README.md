@@ -22,9 +22,14 @@ Data Sources:
 1. Chicago Data Portal (Census Tract Boundaries): https://data.cityofchicago.org/Facilities-Geographic-Boundaries/Boundaries-Census-Tracts-2010/5jrd-6zik
 2. Chicago Data Portal (Pharmacy Status Map): https://data.cityofchicago.org/Health-Human-Services/Pharmacy-Status-Map-Historical/2f34-72ii
 3. Chicago Health Altlas (Health and Socioeconomic Data): https://chicagohealthatlas.org/download
+4. Chicago Data Portal (Population by 2010 Census Block): https://data.cityofchicago.org/d/5yjb-v3mj
 
 Data Processing:
-The above datasets were converted to geospatial data using their pre-existing geodata. Data cleaning included standardizing capitalization for certain variables, converting data from strings (text) to numeric data types, dropping observations with empty values, and assigning "0" to empty values when appropriate (for example, to signify a lack of pharmacies). Our data cleaning and processing code is located under the "code" folder in preprocessing.py. 
+The above datasets were converted to geospatial data using their pre-existing geodata. Data cleaning included
+standardizing capitalization for certain variables, converting data from strings (text) to numeric data types,
+dropping observations with empty values, and assigning "0" to empty values when appropriate (for example, to
+signify a lack of pharmacies). Our data cleaning and processing code is located under the "code" folder in
+preprocessing.py. 
 ```
 
 ## Project Structure
