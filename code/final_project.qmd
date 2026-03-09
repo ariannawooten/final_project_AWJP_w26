@@ -431,7 +431,7 @@ bars = alt.Chart(pharm_grouped).mark_bar().encode(
         height=200 
 )
 
-text = bars.mark_text(\
+text = bars.mark_text(
     align='left',
     baseline='middle',
     dx=3
