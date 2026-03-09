@@ -7,7 +7,8 @@ This project processes and visualizes relationships between Chicago pharmacies a
 ```
 link: https://ariannawooten-awjp-data-vis-final-project--pub-app-nogpd-xk3qtg.streamlit.app/
 
-Note: Streamlit dashboards that have not been used in the past 24hrs must be "woken up" by running the associated code. Prepare the dashboard to run by running pub_app_nogpd.py 
+Note: Streamlit dashboards that have not been used in the past 24hrs must be "woken up"
+by running the associated code. Prepare the dashboard to run by running pub_app_nogpd.py 
 ```
 
 ## Setup
