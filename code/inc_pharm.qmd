@@ -10,11 +10,11 @@ import geopandas as gpd
 import pandas as pd
 from pathlib import Path
 from shapely import wkt
-#import pydeck as pdk
 import matplotlib.pyplot as plt
 import altair as alt
 import streamlit as st
 from matplotlib.patches import Patch
+import matplotlib.lines as mlines
 script_dir = Path(__file__).parent
 ```
 
@@ -24,7 +24,6 @@ script_dir = Path(__file__).parent
 # load 2010 census data
 census_2010 = script_dir / '../data/raw-data/CensusTractsTIGER2010_20260303.geojson'
 census_2010_gdf = gpd.read_file(census_2010)
-
 ```
 
 
@@ -134,7 +133,6 @@ print('\nGeometry type:', combined2_gdf.geom_type.value_counts())
 
 #rename geo id column to merge with cha later
 combined2_gdf = combined2_gdf.rename(columns={'geoid10':'GEOID'})
-
 ```
 
 ```{python}
@@ -183,6 +181,7 @@ cha_pharm['PCI_2020-2024'] = pd.to_numeric(cha_pharm['PCI_2020-2024'], downcast=
 # make choropleth map (per capita income per census tract)
 fig, ax = plt.subplots(figsize=(10,10))
 
+# plot per capita income
 cha_pharm.plot(
     column='PCI_2020-2024',
     cmap='Blues',
@@ -194,6 +193,12 @@ cha_pharm.plot(
     ax=ax
 )
 
+# save the choropleth legend
+choropleth_legend = ax.get_legend()
+choropleth_legend.set_title('Per Capita Income')
+choropleth_legend.set_loc('lower left')
+
+# plot pharmacies
 pharm_gdf.plot(
     ax=ax,
     color=pharm_gdf['color'],
@@ -203,12 +208,23 @@ pharm_gdf.plot(
     edgecolor='white'
 )
 
-# add legend title
-leg = ax.get_legend()
-leg.set_title("Per Capita Income")
-leg.set_loc('lower left')
+# create custom legend labels
+open_handle = mlines.Line2D([], [], color='green', marker='o', linestyle='None', markersize=5, label='Open')
+closed_handle = mlines.Line2D([], [], color='red', marker='o', linestyle='None', markersize=5, label='Closed')
+unknown_handle = mlines.Line2D([], [], color='purple', marker='o', linestyle='None', markersize=5, label='Unknown')
 
-ax.set_title('Per Capita Income per Census Tract\nWith Pharmacies in Chicago\nChicago 2010 Census Tracts')
+# add pharmacy legend
+pharm_legend = ax.legend(
+    handles=[open_handle, closed_handle, unknown_handle],
+    title='Pharmacy Status',
+    loc='upper right'
+)
+
+# add the first legend back
+ax.add_artist(choropleth_legend)
+
+
+ax.set_title('Per Capita Income per Chicago Census Tract\nWith Pharmacy Distribution\nChicago 2010 Census Tracts')
 ax.axis('off')
 plt.tight_layout()
 
