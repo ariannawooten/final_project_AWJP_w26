@@ -23,6 +23,7 @@ execute:
     echo: false
 ---
 
+<<<<<<< HEAD
 
 
 
@@ -462,3 +463,8 @@ The Pharmacy Density per 1000 Residents plot (residents_pharm.png) displays the 
 
 
 
+=======
+![Pharmacy Locations and Hardship Scores](hardship_pharm.png)
+
+relative path: data/derived-data/hardship_pharm.png
+>>>>>>> 94a5fc0 (DS Store, got rid of final_project qmd copy, rendered a placeholder pdf)
