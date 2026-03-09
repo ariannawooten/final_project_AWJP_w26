@@ -70,3 +70,37 @@ code/
   residents_pharm.qmd    # Plots pharmacies per 1000 residents of each Chicago census tract
   transit_pharm_dens.qmd # Plots pharmacy distribution over transportation burden per Chicago census tract
 ```
+## Usage
+
+1. Run preprocessing to filter data:
+```
+python code/preprocessing.py
+```
+2. Generate the hardship rates plot:
+```
+python code/hardship_pharm.qmd
+```
+3. Generate the per capita income per census tract plot:
+```
+python code/inc_pharm.qmd
+```
+4. Generate the pharmacy density per census tract square mile plot:
+```
+python code/pharm_dens_sqmi.qmd
+```
+5. Generate pharmacy distribution plot:
+```
+python code/pharm_dist.qmd
+```
+6. Generate plot of most common pharmacy types:
+```
+python code/pharm_type.qmd
+```
+7. Generate the pharmacy distribution per 1000 residents plot:
+```
+python code/residents_pharm.qmd
+```
+8. Generate the transportation burden plot:
+```
+python code/transit_pharm_dens.qmd
+```
