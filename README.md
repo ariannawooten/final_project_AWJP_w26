@@ -59,15 +59,3 @@ code/
   residents_pharm.qmd # Plots pharmacies per 1000 residents of each Chicago census tract
   transit_pharm_dens.qmd # Plots pharmacy distribution over transportation burden per Chicago census tract
 ```
-
-## Usage
-
-1. Run preprocessing to filter data:
-   ```bash
-   python code/preprocessing.py
-   ```
-
-2. Generate the fire perimeter plot:
-   ```bash
-   python code/plot_fires.py
-   ```
