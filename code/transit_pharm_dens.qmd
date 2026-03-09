@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import altair as alt
 import streamlit as st
 from matplotlib.patches import Patch
+import matplotlib.lines as mlines
 script_dir = Path(__file__).parent
 ```
 
@@ -183,6 +184,7 @@ cha_pharm['RITB_2022'] = pd.to_numeric(cha_pharm['RITB_2022'], downcast=None)
 # make choropleth map (transit burden per census tract)
 fig, ax = plt.subplots(figsize=(10,10))
 
+# plot transit density
 cha_pharm.plot(
     column='RITB_2022',
     cmap='Blues',
@@ -194,6 +196,12 @@ cha_pharm.plot(
     ax=ax
 )
 
+# save the choropleth legend
+choropleth_legend = ax.get_legend()
+choropleth_legend.set_title("Relative Transportation Insecurity")
+choropleth_legend.set_loc('lower left')
+
+# plot pharmacy locations
 pharm_gdf.plot(
     ax=ax,
     color=pharm_gdf['color'],
@@ -204,12 +212,22 @@ pharm_gdf.plot(
 )
 
 
+# create custom legend labels
+open_handle = mlines.Line2D([], [], color='green', marker='o', linestyle='None', markersize=5, label='Open')
+closed_handle = mlines.Line2D([], [], color='red', marker='o', linestyle='None', markersize=5, label='Closed')
+unknown_handle = mlines.Line2D([], [], color='purple', marker='o', linestyle='None', markersize=5, label='Unknown')
 
-# add legend title
-leg = ax.get_legend()
-leg.set_title("Relative Transportation Insecurity")
-leg.set_loc('lower left')
+# add pharmacy legend
+pharm_legend = ax.legend(
+    handles=[open_handle, closed_handle, unknown_handle],
+    title='Pharmacy Status',
+    loc='upper right'
+)
 
+# add the first legend back
+ax.add_artist(choropleth_legend)
+
+# additional settings
 ax.set_title('Transportation Burden per Census Tract\nWith Pharmacies in Chicago\nChicago 2010 Census Tracts')
 ax.axis('off')
 plt.tight_layout()
