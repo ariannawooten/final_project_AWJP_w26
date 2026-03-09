@@ -121,6 +121,8 @@ print(df_pharm.head())
 
 MERGING PHARMACY, HEALTH, AND CENSUS TRACT DATA
 
+
+
 ```{python}
 # join pharmacy location and census tract gdfs (pharmacy emphasis)
 combined1_gdf = gpd.sjoin(pharm_gdf, census_2010_gdf, 
