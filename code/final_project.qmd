@@ -24,8 +24,6 @@ execute:
 ---
 
 
-
-
 ```{python echo=False}
 # load packages
 import geopandas as gpd
@@ -290,7 +288,7 @@ plt.show()
 
 The Per Capita Income per Chicago Census Tract plot (inc_pharm.png) displays a choropleth of per capita income of each Chicago census tract. Darker colors represent higher levels of per capita income. The distribution of Chicago pharmacies is laid over the choropleth. The plot was created using matplotlib. It suggests that there is a correlation between census tract income and pharmacy presence, with higher tract income being associated with higher numbers of pharmacies. 
 
-```{python}
+```{python echo=False}
 # plot per capita income and pharmacy density
 
 # change per capita income variable from float to integer
@@ -354,7 +352,7 @@ plt.show()
 
 The Pharmacy Density per Square Mile plot (pharm_dens_sqmi.png) displays a choropleth of the number of pharmacies per square mile for each Chicago census tract. Darker colors represent higher levels of pharmacies per square mile. The plot was created in matplotlib. The plot indicates that there are more pharmacies per tract square mile in the north and west sides compared to the south side. Traditionally, the north, west, and south sides of Chicago have distinctly different racial populations with the north side composed of a mostly white population while racial minorities compose the majority of the population in the west and south sides. This trend suggests that racial minorities in the south side lack access to a disproportionate number of pharmacies compared to populations in the north and west side.
 
-```{python}
+```{python echo=False}
 # make choropleth map (pharm density per square mile)
 fig, ax = plt.subplots(figsize=(10,10))
 
@@ -385,7 +383,7 @@ plt.show()
 
 The Chicago Pharmacy Distribution plot (pharm_dist.png) displays the presence of pharmacies across Chicago colored by their operational status (open, closed, or unknown). The plot is created in matplotlib. The distribution of pharmacies is higher in the north side of Chicago compared to the west and south sides. The presence of closed pharmacies is highest in the Loop and in the south side. This indicates that the north side, which is wealthier and composed of higher levels of white people compared to other parts of Chicago, has increased access to pharmacies compared to other areas of Chicago.
 
-```{python}
+```{python echo=False}
 # set up plot (Chicago Pharmacy Distribution on census map)
 fig, ax = plt.subplots(figsize=(8,6))
 
@@ -426,7 +424,7 @@ plt.show()
 
 The Most Common Pharmacies in Chicago barplot (pharm_type.png) displays the distribution of Chicago pharmacy types. The plot was created using Altair. Most pharmacies in Chicago are independently owned, with the second most common being those operated by Walgreens. There is a large drop between the first and second most common pharmacy types compared to all others. The distribution suggests that local pharmacies are able to effectively serve their community and remain in business.  
 
-```{python}
+```{python echo=False}
 # move index into a column so altair can read it
 pharm_grouped = df_pharm.groupby('Pharmacy Name').size().reset_index(name='Num Pharmacies')
 
@@ -459,6 +457,105 @@ chart
 
 The Pharmacy Density per 1000 Residents plot (residents_pharm.png) displays the distribution of pharmacies per 1000 residents for each Chicago census tract. Darker colors represent higher densities of residents per each tract. The plot was created using matplot lib. The plot indicates that the proportion of pharmacies to residents is generally lowest in the north side, with higher proportions in other city areas. The disproportionate distribution of pharmacies can either be a result of higher population density in the north side or due to the west and south sides lacking adequate pharmacy service.
 
+
+
+```{python echo=False}
+# make plot of pharmacies per 1000 residents in each census tract
+fig, ax = plt.subplots(figsize=(10,10))
+
+cen_tract_pop_gdf.plot(
+    column='pharm_per_1000',
+    cmap='OrRd',
+    scheme='quantiles',
+    k=5,
+    legend=True,
+    linewidth=0.1,
+    edgecolor='grey',
+    ax=ax
+)
+
+# add legend title
+leg = ax.get_legend()
+leg.set_title("Pharmacies per 1000 Residents")
+leg.set_loc('lower left')
+
+ax.set_title('Pharmacy Density per 1000 Residents\nChicago 2010 Census Tracts')
+ax.axis('off')
+plt.tight_layout()
+
+plt.savefig('residents_pharm.png', bbox_inches='tight')
+
+plt.show()
+```
+
+The Transportation Burden per Census Tract plot (transit_pharm.png) displays a choropleth of transportation insecurity per each Chicago census tract. Darker colors indicate higher levels of transportation insecurity. A scatterplot of pharmacies across Chicago colored by status is layered on top of the choropleth. The plot was created using matplotlib. The image indicates that Chicago tracts with higher levels of transportation insecurity are served by lower amounts of pharmacies, which could affect the ability for residents to access pharmaceuticals.
+
+```{python echo=False}
+# transit density and pharmacies
+
+#make transit values numeric
+cha_pharm['RITB_2022'] = pd.to_numeric(cha_pharm['RITB_2022'], downcast=None)
+
+# make choropleth map (transit burden per census tract)
+fig, ax = plt.subplots(figsize=(10,10))
+
+# plot transit density
+cha_pharm.plot(
+    column='RITB_2022',
+    cmap='Blues',
+    scheme='quantiles',
+    k=5,
+    legend=True,
+    linewidth=0.1,
+    edgecolor='grey',
+    ax=ax
+)
+
+# save the choropleth legend
+choropleth_legend = ax.get_legend()
+choropleth_legend.set_title("Relative Transportation Insecurity")
+choropleth_legend.set_loc('lower left')
+
+# plot pharmacy locations
+pharm_gdf.plot(
+    ax=ax,
+    color=pharm_gdf['color'],
+    markersize=35,
+    alpha=0.7,
+    legend='status',
+    edgecolor='white'
+)
+
+
+# create custom legend labels
+open_handle = mlines.Line2D([], [], color='green', marker='o', linestyle='None', markersize=5, label='Open')
+closed_handle = mlines.Line2D([], [], color='red', marker='o', linestyle='None', markersize=5, label='Closed')
+unknown_handle = mlines.Line2D([], [], color='purple', marker='o', linestyle='None', markersize=5, label='Unknown')
+
+# add pharmacy legend
+pharm_legend = ax.legend(
+    handles=[open_handle, closed_handle, unknown_handle],
+    title='Pharmacy Status',
+    loc='upper right'
+)
+
+# add the first legend back
+ax.add_artist(choropleth_legend)
+
+# additional settings
+ax.set_title('Transportation Burden per Census Tract\nWith Pharmacies in Chicago\nChicago 2010 Census Tracts')
+ax.axis('off')
+plt.tight_layout()
+
+plt.savefig('transit_pharm.png', bbox_inches='tight')
+
+plt.show()
+```
+
+Lastly, we developed a streamlit dashboard to allow users to visually observe the correlation between pharmacy access and numerous socioeconomic variables. The dashboard features two interactive plots, each created using the altair library. It should also be noted that, while we attempted to add geographic plots, we were unable to utilize our geopandas (geographic data handling) library such that it was compatible with the streamlit dashboard software. 
+The first is a density plot that shows the transportation burden for each census tract, and it features a horizontal line at the median. The density plot shows all census tracts by default, but users can subset the data to only include tracts that are disadvantaged in terms of median household income, overall hardship (defined in the dashboard), and the percentage of seniors living alone. After observing the transportation burden percentiles across the different samples, one can see that the samples with low income tracts and high hardship scores are much more likely to have an above median transportation burden. However, the percentage of seniors living alone has a distribution similar to the full sample. This information suggests that communities with low income and high overall hardship (unemployment, poverty, education, etc.) are more likely to experience transportation burden, which makes it even more difficult for them to access pharmacies. Fortunately, tracts with many seniors living alone do not seem to see more transportation burden than other tracts. 
+The dashboard also features a customizable scatterplot, in which one can see numerous correlations between income, transportation burden, walkability, poverty, pharmacy density, and pharmacy per 1,000 residents. The resulting plots show that areas with high poverty and low income have a lower pharmacy density, while pharmacy density has little to no correlation with walkability and transportation burden. Further, walkability has a significant positive correlation to pharmacy per 1,000 residents, while income has only a weak positive relationship. Meanwhile, transportation and poverty appear uncorrelated to pharmacy per 1,000 residents. Lastly, we see a strong positive correlation between income, walkability, and transportation burden as well as a strong negative relationship between poverty and transportation burden. The key policy implications here are that low income communities are both more likely to experience a low pharmacy density and a high transportation burden, contributing to significantly lower pharmacy access for these underserved communities. Further, walkability is a slightly better predictor of overall pharmacy access than transportation burden.
+Ultimately, our work contains many limitations and opportunities for further research, but points to a potential need for more pharmacies in underserved communities. 
 
 
 
