@@ -50,9 +50,6 @@ census_2010_gdf = gpd.read_file(census_2010)
 
 
 ```{python echo=False}
-project_dir = Path.cwd().parent
-data_dir = project_dir / "data" / "raw-data"
-
 pharmacy = data_dir / "Pharmacy_Status_-_Historical_20260302.csv"
 
 df_pharm = pd.read_csv(pharmacy)
@@ -344,7 +341,6 @@ ax.set_title('Per Capita Income per Chicago Census Tract\nWith Pharmacy Distribu
 ax.axis('off')
 plt.tight_layout()
 
-plt.savefig('inc_pharm.png', bbox_inches='tight')
 
 
 plt.show()
@@ -376,7 +372,6 @@ ax.set_title('Pharmacy Density per Square Mile\nChicago 2010 Census Tracts')
 ax.axis('off')
 plt.tight_layout()
 
-plt.savefig('pharm_dens_sqmi.png', bbox_inches='tight')
 
 plt.show()
 ```
@@ -417,7 +412,6 @@ plt.tight_layout()
 
 ax.set_axis_off()
 
-plt.savefig('pharm_dist.png', bbox_inches='tight')
 
 plt.show()
 ```
@@ -453,39 +447,6 @@ chart = (bars + text).properties(
 )
 
 chart
-```
-
-The Pharmacy Density per 1000 Residents plot (residents_pharm.png) displays the distribution of pharmacies per 1000 residents for each Chicago census tract. Darker colors represent higher densities of residents per each tract. The plot was created using matplot lib. The plot indicates that the proportion of pharmacies to residents is generally lowest in the north side, with higher proportions in other city areas. The disproportionate distribution of pharmacies can either be a result of higher population density in the north side or due to the west and south sides lacking adequate pharmacy service.
-
-
-
-```{python echo=False}
-# make plot of pharmacies per 1000 residents in each census tract
-fig, ax = plt.subplots(figsize=(10,10))
-
-cen_tract_pop_gdf.plot(
-    column='pharm_per_1000',
-    cmap='OrRd',
-    scheme='quantiles',
-    k=5,
-    legend=True,
-    linewidth=0.1,
-    edgecolor='grey',
-    ax=ax
-)
-
-# add legend title
-leg = ax.get_legend()
-leg.set_title("Pharmacies per 1000 Residents")
-leg.set_loc('lower left')
-
-ax.set_title('Pharmacy Density per 1000 Residents\nChicago 2010 Census Tracts')
-ax.axis('off')
-plt.tight_layout()
-
-plt.savefig('residents_pharm.png', bbox_inches='tight')
-
-plt.show()
 ```
 
 The Transportation Burden per Census Tract plot (transit_pharm.png) displays a choropleth of transportation insecurity per each Chicago census tract. Darker colors indicate higher levels of transportation insecurity. A scatterplot of pharmacies across Chicago colored by status is layered on top of the choropleth. The plot was created using matplotlib. The image indicates that Chicago tracts with higher levels of transportation insecurity are served by lower amounts of pharmacies, which could affect the ability for residents to access pharmaceuticals.
@@ -547,7 +508,6 @@ ax.set_title('Transportation Burden per Census Tract\nWith Pharmacies in Chicago
 ax.axis('off')
 plt.tight_layout()
 
-plt.savefig('transit_pharm.png', bbox_inches='tight')
 
 plt.show()
 ```
