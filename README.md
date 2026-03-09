@@ -1,12 +1,30 @@
 # Pharmacies in Chicago
 
-This project processes and visualizes relationships between Chicago pharmacies and census tracts.
+This project processes and visualizes relationships between Chicago pharmacies and census tracts. See final_project.pdf for a fuller summary of the project.
+
+## Data Dashboard
+
+```
+link: https://ariannawooten-awjp-data-vis-final-project--pub-app-nogpd-xk3qtg.streamlit.app/
+
+Note: Streamlit dashboards that have not been used in the past 24hrs must be "woken up" by running the associated code. Prepare the dashboard to run by running pub_app_nogpd.py 
+```
 
 ## Setup
 
-```bash
-conda env create -f environment.yml
-conda activate fire_analysis
+```
+Clone the repository to your local device
+```
+## Data Sources and Processing
+
+```
+Data Sources:
+1. Chicago Data Portal (Census Tract Boundaries): https://data.cityofchicago.org/Facilities-Geographic-Boundaries/Boundaries-Census-Tracts-2010/5jrd-6zik
+2. Chicago Data Portal (Pharmacy Status Map): https://data.cityofchicago.org/Health-Human-Services/Pharmacy-Status-Map-Historical/2f34-72ii
+3. Chicago Health Altlas (Health and Socioeconomic Data): https://chicagohealthatlas.org/download
+
+Data Processing:
+The above datasets were converted to geospatial data using their pre-existing geodata. Data cleaning included standardizing capitalization for certain variables, converting data from strings (text) to numeric data types, dropping observations with empty values, and assigning "0" to empty values when appropriate (for example, to signify a lack of pharmacies). Our data cleaning and processing code is located under the "code" folder in preprocessing.py. 
 ```
 
 ## Project Structure
