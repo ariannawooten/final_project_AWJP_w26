@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import altair as alt
 import streamlit as st
 from matplotlib.patches import Patch
+import matplotlib.lines as mlines
 script_dir = Path(__file__).parent
 ```
 
@@ -236,7 +237,6 @@ cen_tract_pop_gdf.plot(
     scheme='quantiles',
     k=5,
     legend=True,
- #   legend_kwds={'label': 'Pharmacies Per 1000 Residents'},
     linewidth=0.1,
     edgecolor='grey',
     ax=ax
