@@ -71,6 +71,7 @@ code/
   preprocessing.py       # Filters all data
   residents_pharm.qmd    # Plots pharmacies per 1000 residents of each Chicago census tract
   transit_pharm_dens.qmd # Plots pharmacy distribution over transportation burden per Chicago census tract
+  final_project.qmd      # Written summary of the entire project
 ```
 ## Usage
 
