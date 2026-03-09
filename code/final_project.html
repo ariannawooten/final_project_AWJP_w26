@@ -25,7 +25,11 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
+<<<<<<< HEAD
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="final_project_files/libs/clipboard/clipboard.min.js"></script>
+=======
+<script src="final_project_files/libs/clipboard/clipboard.min.js"></script>
+>>>>>>> 42df5fe6e66de466be9bc970140cbbd12ce0b5c0
 <script src="final_project_files/libs/quarto-html/quarto.js"></script>
 <script src="final_project_files/libs/quarto-html/popper.min.js"></script>
 <script src="final_project_files/libs/quarto-html/tippy.umd.min.js"></script>
@@ -34,10 +38,14 @@ ul.task-list li input[type="checkbox"] {
 <link href="final_project_files/libs/quarto-html/quarto-syntax-highlighting-2f5df379a58b258e96c21c0638c20c03.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="final_project_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="final_project_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<<<<<<< HEAD
 <link href="final_project_files/libs/bootstrap/bootstrap-1bc8a17f135ab3d594c857e9f48e611b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
 
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+=======
+<link href="final_project_files/libs/bootstrap/bootstrap-c0367b04c37547644fece4185067e4a7.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+>>>>>>> 42df5fe6e66de466be9bc970140cbbd12ce0b5c0
 
 
 </head>
@@ -46,7 +54,11 @@ ul.task-list li input[type="checkbox"] {
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
 <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+<<<<<<< HEAD
 <div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="..\final_project.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></div>
+=======
+<div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="../final_project.pdf"><i class="bi bi-file-pdf"></i>PDF</a></li></ul></div></div>
+>>>>>>> 42df5fe6e66de466be9bc970140cbbd12ce0b5c0
 <main class="content" id="quarto-document-content">
 \RecustomVerbatimEnvironment{verbatim}{Verbatim}{
   showspaces = false,
@@ -86,6 +98,7 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<<<<<<< HEAD
 <p>This writeup aims to provide additional information and context for the associated data project, “Socioeconomic Distributions and Pharmacies in Chicago”. The project utilizes public health and pharmacy data to explore the relationships between pharmacy access and socioeconomic status. Our research is founded on the question of whether there is a relationship between pharmacy access and socioeconomic status (race, income, etc.) in the City of Chicago. The following sections of this text address the policy implications of our research questions, data collection, data analysis and coding, data visualizations, and our findings. Our research questions have significant implications on the advancement of socioeconomic equity and health outcomes in the city of Chicago. Firstly, it is well established in the literature that low pharmacy access is significantly correlated with majority non-white populations, presence of a disability, low education, and other socioeconomic factors (Wittenhauer et al.&nbsp;2024). These low-access communities are at greater risk of health problems due to difficulty in accessing prescriptions. This is of particular concern for the City of Chicago, which is highly segregated by race, income, and health outcomes (Smith et al.&nbsp;2021). Thus, our research aims to identify regions that may benefit from increased pharmacy access, whether that be through a new pharmacy opening, pharmacy shuttles, or otherwise. With more information on pharmacy access and need across the City of Chicago, policymakers would be better equipped to help underserved communities improve public health. We utilized four datasets to address our questions regarding health, socioeconomic status, and pharmacy access. The first two datasets are from the Chicago Data Center. The first, linked here, provides data on the geographical boundaries of Chicago’s census tracts and was used to (1) create a map of Chicago’s census tracts and (2) attribute pharmacy locations to their corresponding census tract. The second dataset (link) is titled “Pharmacy Status Map - Historical” and provided our geographic data for Chicago pharmacies; this dataset also included the status (opened, closed, or unknown) of each pharmacy. A significant limitation from this dataset is that it seems to be missing a substantial number of pharmacy locations, although it is unclear if there is a specific type of pharmacy that was more likely to be left out than others. Lastly, we utilized data from the Chicago Health Atlas (link), which provided data on income, walkability, transportation access, and other socioeconomic variables–all aggregated by census tract. This dataset lacked substantial health data at the census tract level, forcing us to focus on socioeconomic disparities as opposed to health disparities. Data cleaning involved converting certain variables into geospatial or numeric data, as appropriate, in addition to formatting processes that standardized our data. Firstly, we loaded in the pharmacy location data, made all of the pharmacy names a string with the first letter capitalized, and recoded the pharmacy status variable such that it only included “Open”, “Closed”, and “Unknown”. Previously, status values varied by capitalization and included “closed” and “permanently closed”, which we treated as equal. The census tract boundary data was loaded as a geodataframe using the geopandas library, and required no additional cleaning other than renaming the “geoid10” column (“GEOID” is the ID number assigned to each census tract) in order to merge it with the other datasets. After loading in the raw Chicago Health Atlas data, we had to remove the first three columns, which included variable definitions and citations. Finally, the pharmacy location data and census boundary data were merged via a spatial join (each pharmacy was assigned a census tract) and the socioeconomic data from Chicago Health Atlas was merged based on the “GEOID” column. The data processing code is available in preprocessing.py. The Relative Hardship Index Score plot (hardship_pharm.png) displays a choropleth (color-coded map) of Chicago census tracts, populated by the relative hardship scores compared to other census tracts. The Hardship Index is a composite score reflecting hardship in the community that allows for comparison across geographies. Darker colors represent higher levels of hardship. The distribution of pharmacies in Chicago is laid over the hardship choropleth. We created this plot using matplotlib. It suggests that areas with lower levels of hardship tend to have fewer pharmacies, but the distribution could be a result of lower populations in lower hardship tracts.</p>
 <div id="0a35226c" class="cell" data-execution_count="12">
 <div class="cell-output cell-output-display">
@@ -214,6 +227,9 @@ ul.task-list li input[type="checkbox"] {
 </div>
 </div>
 <p>Lastly, we developed a streamlit dashboard to allow users to visually observe the correlation between pharmacy access and numerous socioeconomic variables. The dashboard features two interactive plots, each created using the altair library. It should also be noted that, while we attempted to add geographic plots, we were unable to utilize our geopandas (geographic data handling) library such that it was compatible with the streamlit dashboard software. The first is a density plot that shows the transportation burden for each census tract, and it features a horizontal line at the median. The density plot shows all census tracts by default, but users can subset the data to only include tracts that are disadvantaged in terms of median household income, overall hardship (defined in the dashboard), and the percentage of seniors living alone. After observing the transportation burden percentiles across the different samples, one can see that the samples with low income tracts and high hardship scores are much more likely to have an above median transportation burden. However, the percentage of seniors living alone has a distribution similar to the full sample. This information suggests that communities with low income and high overall hardship (unemployment, poverty, education, etc.) are more likely to experience transportation burden, which makes it even more difficult for them to access pharmacies. Fortunately, tracts with many seniors living alone do not seem to see more transportation burden than other tracts. The dashboard also features a customizable scatterplot, in which one can see numerous correlations between income, transportation burden, walkability, poverty, pharmacy density, and pharmacy per 1,000 residents. The resulting plots show that areas with high poverty and low income have a lower pharmacy density, while pharmacy density has little to no correlation with walkability and transportation burden. Further, walkability has a significant positive correlation to pharmacy per 1,000 residents, while income has only a weak positive relationship. Meanwhile, transportation and poverty appear uncorrelated to pharmacy per 1,000 residents. Lastly, we see a strong positive correlation between income, walkability, and transportation burden as well as a strong negative relationship between poverty and transportation burden. The key policy implications here are that low income communities are both more likely to experience a low pharmacy density and a high transportation burden, contributing to significantly lower pharmacy access for these underserved communities. Further, walkability is a slightly better predictor of overall pharmacy access than transportation burden. Ultimately, our work contains many limitations and opportunities for further research, but points to a potential need for more pharmacies in underserved communities.</p>
+=======
+<p>The Relative Hardship Index Score plot (hardship_pharm.png) displays a choropleth of Chicago census tracts, populated by the relative hardship scores compared to other census tracts. The Hardship Index is a composite score reflecting hardship in the community that allows for comparison across geographies. Darker colors represent higher levels of hardship. The distribution of pharmacies in Chicago is laid over the hardship choropleth. We created this plot using matplotlib. It suggests that areas with lower levels of hardship tend to have fewer pharmacies, but the distribution could be a result of lower populations in lower hardship tracts.</p>
+>>>>>>> 42df5fe6e66de466be9bc970140cbbd12ce0b5c0
 
 </main>
 <!-- /main column -->

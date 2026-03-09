@@ -23,6 +23,7 @@ execute:
     echo: false
 ---
 
+<<<<<<< HEAD
 
 ```{python echo=False}
 # load packages
@@ -32,7 +33,6 @@ from pathlib import Path
 from shapely import wkt
 import matplotlib.pyplot as plt
 import altair as alt
-import streamlit as st
 from matplotlib.patches import Patch
 import matplotlib.lines as mlines
 import os
@@ -519,3 +519,8 @@ Ultimately, our work contains many limitations and opportunities for further res
 
 
 
+=======
+![Pharmacy Locations and Hardship Scores](hardship_pharm.png)
+
+relative path: data/derived-data/hardship_pharm.png
+>>>>>>> 94a5fc0 (DS Store, got rid of final_project qmd copy, rendered a placeholder pdf)
