@@ -1,4 +1,4 @@
-# Pharmacies in Chicago
+# Socioeconomic Distributions and Pharmacies in Chicago
 
 This project processes and visualizes relationships between Chicago pharmacies and census tracts. See final_project.pdf for a fuller summary of the project.
 
@@ -40,22 +40,28 @@ data/
     
   derived-data/       # Filtered data and output plots
     census_and_pharm_gdf.csv  # Merged data of pharmacies in Chicago census tracts
-    cha_pharm.csv    # Merged Chicago health and pharmacy data 
+    cha_pharm.csv             # Merged Chicago health and pharmacy data
+    hardship_pharm.png        # Plot of relative hardship scores of Chicago census tracks overlaid with the pharmacy distribution
+    inc_pharm.png             # Plot of per capita income of Chicago census tracts overlaid with pharmacy distribution
+    pharm_dens_sqmi.png       # Plot of pharmacy density per square mile of Chicago census tracts
+    pharm_dist.png            # Plot of pharmacy distribution in Chicago
+    pharm_type.png            # Plot of most common pharmacy names/brands
+    residents_pharm.png       # Plot of pharmacy density per 1000 residents per Chicago census tract
 code/
   DataVis_Final_JPAW.qmd # Dashboard code
-  all_merged.csv  # Merge of all used data
-  cen_tract_pop.csv # Census tracts by population data
-  census_and_pharm_csv # Pharmacies by census tract data
-  cha_pharm.csv # Combined Chicago health and pharmacy data
-  cha_plots.qmd # Plots of cha data
-  chicago_pharmacy.qmd # Development of Chicago pharmacy code
-  hardship_pharm.qmd # Plots hardship rates of Chicago census tracts and pharmacies
-  inc_pharm.qmd # Plots pharmacy distribution on Chicago census tracts by per capita income
-  jpaw_app.py # Dashboard plots
-  pharm_dens_sqmi.qmd # Plots pharmacy density per square miles of Chicago census tracts
-  pharm_dist.qmd # Plots distribution of pharmacies on Chicago census tracts
-  pharm_type.qmd # Plots the most common pharmacy types in Chicago
-  preprocessing.py    # Filters all data
-  residents_pharm.qmd # Plots pharmacies per 1000 residents of each Chicago census tract
+  all_merged.csv         # Merge of all used data
+  cen_tract_pop.csv      # Census tracts by population data
+  census_and_pharm_csv   # Pharmacies by census tract data
+  cha_pharm.csv          # Combined Chicago health and pharmacy data
+  cha_plots.qmd          # Development of Chicago Health Atlas code
+  chicago_pharmacy.qmd   # Development of Chicago pharmacy code
+  hardship_pharm.qmd     # Plots hardship rates of Chicago census tracts and pharmacies
+  inc_pharm.qmd          # Plots pharmacy distribution on Chicago census tracts by per capita income
+  jpaw_app.py            # Dashboard plots
+  pharm_dens_sqmi.qmd    # Plots pharmacy density per square miles of Chicago census tracts
+  pharm_dist.qmd         # Plots distribution of pharmacies on Chicago census tracts
+  pharm_type.qmd         # Plots the most common pharmacy types in Chicago
+  preprocessing.py       # Filters all data
+  residents_pharm.qmd    # Plots pharmacies per 1000 residents of each Chicago census tract
   transit_pharm_dens.qmd # Plots pharmacy distribution over transportation burden per Chicago census tract
 ```
