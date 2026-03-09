@@ -1,0 +1,221 @@
+---
+title: "Transit by Pharmacy Density"
+format: html
+---
+
+```{python}
+# load packages
+import geopandas as gpd
+import pandas as pd
+from pathlib import Path
+from shapely import wkt
+#import pydeck as pdk
+import matplotlib.pyplot as plt
+import altair as alt
+import streamlit as st
+from matplotlib.patches import Patch
+script_dir = Path(__file__).parent
+```
+
+## LOADING AND PREPARING 2010 CENSUS GEODATA
+
+```{python}
+# load 2010 census data
+census_2010 = script_dir / '../data/raw-data/CensusTractsTIGER2010_20260303.geojson'
+census_2010_gdf = gpd.read_file(census_2010)
+
+```
+
+
+```{python}
+# load pharmacy data
+pharmacy = script_dir / '../data/raw-data/Pharmacy_Status_-_Historical_20260302.csv'
+df_pharm = pd.read_csv(pharmacy)
+
+# make pharmacy names capitalized
+df_pharm['Pharmacy Name'] = df_pharm['Pharmacy Name'].str.capitalize()
+
+# create mapping for pharmacy status
+mapping = {
+    'OPEN':'Open',
+    'CLOSED': 'Closed',
+    'Permanently closed': 'Closed',
+    'closed': 'Closed',
+    'open': 'Open',
+    'permanently closed': 'Closed',
+    'unknown': 'Unknown'
+}
+
+# recode the status column
+df_pharm['Status'] = df_pharm['Status'].replace(mapping)
+```
+
+```{python}
+# load pharmacies as a geodataframe
+
+# drop nas
+df_pharm = df_pharm.dropna(subset=['New Georeferenced Column'])
+
+# drop na strings
+df_pharm = df_pharm[
+    df_pharm['New Georeferenced Column']
+    .str.lower()
+    .ne('nan')
+]
+
+# convert wkt to a geometry
+df_pharm['geometry'] = gpd.GeoSeries.from_wkt(
+    df_pharm['New Georeferenced Column'],
+    on_invalid='ignore'
+)
+
+# drop failed parses
+df_pharm = df_pharm.dropna(subset=['geometry'])
+
+# create geodataframe
+pharm_gdf = gpd.GeoDataFrame(
+    df_pharm,
+    geometry='geometry',
+    crs='EPSG:4326'
+)
+
+# sanity check
+print(df_pharm.shape)
+print(df_pharm.head())
+```
+
+```{python}
+# map colors to pharmacy status
+
+# create color dictionary
+color_dict = {
+    'Open': 'green',
+    'Closed': 'red',
+    'Unknown': 'purple'
+}
+
+# map colors to gdf
+pharm_gdf['color'] = pharm_gdf['Status'].map(color_dict)
+```
+
+```{python}
+# join pharmacy location and census tract gdfs (pharmacy emphasis)
+combined1_gdf = gpd.sjoin(pharm_gdf, census_2010_gdf, 
+    how='left',
+    predicate='within')
+
+# check object type
+print('Object type:', type(combined1_gdf))
+
+# check geometry type
+print('\nGeometry type:', combined1_gdf.geom_type.value_counts())
+
+combined1_gdf['geometry']
+```
+
+```{python}
+assert (census_2010_gdf.crs == pharm_gdf.crs)
+```
+
+```{python}
+# other sjoin option
+
+# join gdfs (alternative merge with more census data and less pharm data)
+combined2_gdf = gpd.sjoin(census_2010_gdf, pharm_gdf, 
+    how='left',
+    predicate='intersects')
+
+# check object type
+print('Object type:', type(combined2_gdf))
+
+# check geometry type
+print('\nGeometry type:', combined2_gdf.geom_type.value_counts())
+
+#rename geo id column to merge with cha later
+combined2_gdf = combined2_gdf.rename(columns={'geoid10':'GEOID'})
+
+```
+
+```{python}
+# Load CHA data
+cha_datapath = script_dir / '../data/raw-data/Chicago Health Atlas Data Download - Census Tracts.csv'
+cha = pd.read_csv(cha_datapath)
+
+# remove first 3 rows, which have data definitions, citations, etc.
+cha = cha.iloc[4:809]
+
+# source: https://geopandas.org/en/stable/gallery/create_geopandas_from_pandas.html
+cha_gdf = gpd.GeoDataFrame(
+    cha, geometry=gpd.points_from_xy(cha.Longitude, cha.Latitude), crs="EPSG:4326"
+)
+
+# rename combined_gdf1 column for spatial joining purposes
+combined1_gdf.rename(columns={'geoid10':'GEOID'}, inplace=True)
+
+# merge cha and pharmacy/tract data
+cha_pharm = combined2_gdf.merge(cha_gdf, on='GEOID')
+
+# recode geoid for census data
+census_2010_gdf.rename(columns={'geoid10':'GEOID'}, inplace=True)
+
+# merge cha and tract only data
+cha_tract = census_2010_gdf.merge(cha_gdf, on='GEOID')
+
+# define geometry column for plotting later
+cha_pharm = cha_pharm.set_geometry('geometry_y')
+
+print(f"shapes: merged = {cha_pharm.shape}, cha_gdf = {cha_gdf.shape}, combined1 = {combined1_gdf.shape}") # we lost about half of the cha data (n=805) and 10/421 of the other data
+
+cha_pharm['geometry_x'] 
+
+# set as geometry for future chloropleth maps
+cha_pharm = cha_pharm.set_geometry('geometry_x')
+```
+
+
+
+```{python}
+# transit density and pharmacies
+
+#make transit values numeric
+cha_pharm['RITB_2022'] = pd.to_numeric(cha_pharm['RITB_2022'], downcast=None)
+
+# make choropleth map (transit burden per census tract)
+fig, ax = plt.subplots(figsize=(10,10))
+
+cha_pharm.plot(
+    column='RITB_2022',
+    cmap='Blues',
+    scheme='quantiles',
+    k=5,
+    legend=True,
+    linewidth=0.1,
+    edgecolor='grey',
+    ax=ax
+)
+
+pharm_gdf.plot(
+    ax=ax,
+    color=pharm_gdf['color'],
+    markersize=35,
+    alpha=0.7,
+    legend='status',
+    edgecolor='white'
+)
+
+
+
+# add legend title
+leg = ax.get_legend()
+leg.set_title("Relative Transportation Insecurity")
+leg.set_loc('lower left')
+
+ax.set_title('Transportation Burden per Census Tract\nWith Pharmacies in Chicago\nChicago 2010 Census Tracts')
+ax.axis('off')
+plt.tight_layout()
+
+plt.savefig('transit_pharm.png', bbox_inches='tight')
+
+plt.show()
+```
+
