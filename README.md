@@ -52,6 +52,7 @@ data/
     pharm_dist.png            # Plot of pharmacy distribution in Chicago
     pharm_type.png            # Plot of most common pharmacy names/brands
     residents_pharm.png       # Plot of pharmacy density per 1000 residents per Chicago census tract
+    transit_pharm.png         # Plot of transportation burden per Chicago census tract overlaid with pharmacy distribution
 code/
   DataVis_Final_JPAW.qmd # Dashboard code
   all_merged.csv         # Merge of all used data
